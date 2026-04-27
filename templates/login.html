@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL — Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #050a0f;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-box {
+            background: #020e1a;
+            border: 1px solid #00e5ff33;
+            border-radius: 8px;
+            padding: 50px 40px;
+            width: 400px;
+            box-shadow: 0 0 40px #00e5ff11;
+        }
+
+        .logo {
+            color: #00e5ff;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 6px;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #ffffff33;
+            font-size: 10px;
+            letter-spacing: 3px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .field {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: #ffffff44;
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            background: #050f1a;
+            border: 1px solid #00e5ff33;
+            border-radius: 4px;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 12px 14px;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #00e5ff88;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 10px;
+            background: linear-gradient(135deg, #006688, #00aad4);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            padding: 14px;
+            box-shadow: 0 0 20px #00aad444;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #0088aa, #00ccff);
+        }
+
+        .error {
+            background: #ff444411;
+            border: 1px solid #ff444433;
+            border-radius: 4px;
+            color: #ff4444;
+            font-size: 11px;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
+            padding: 10px 14px;
+            text-align: center;
+        }
+
+        .footer {
+            color: #ffffff22;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            margin-right: 6px;
+            box-shadow: 0 0 6px #00ff88;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-box">
+    <div class="logo">⬡ SENTINEL</div>
+    <div class="subtitle">SOC L1 ANALYST ACCESS PORTAL</div>
+
+    {% if error %}
+    <div class="error">
+        ⚠️ {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST">
+        <div class="field">
+            <label>ANALYST ID</label>
+            <input
+                type="text"
+                name="username"
+                placeholder="Enter your analyst ID"
+                autocomplete="off"
+                required
+            />
+        </div>
+
+        <div class="field">
+            <label>ACCESS CODE</label>
+            <input
+                type="password"
+                name="password"
+                placeholder="Enter your access code"
+                required
+            />
+        </div>
+
+        <button type="submit">AUTHENTICATE →</button>
+    </form>
+
+    <div class="footer">
+        <span class="dot"></span>
+        SENTINEL SECURITY OPERATIONS CENTER
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL — Incident History</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #050a0f;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #000d1a;
+            border-bottom: 1px solid #00e5ff44;
+            padding: 16px 30px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            color: #00e5ff;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            color: #ffffff44;
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        nav {
+            margin-left: auto;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #00e5ff;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        nav a:hover { color: #ffffff; }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .stat-box {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 6px;
+            padding: 16px 24px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #00e5ff;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #ffffff44;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .chart-section {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-section h2 {
+            color: #00e5ff;
+            font-size: 12px;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .chart-box {
+            background: #00112a;
+            border: 1px solid #00e5ff11;
+            border-radius: 6px;
+            padding: 20px;
+        }
+
+        .chart-box h3 {
+            color: #ffffff44;
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        canvas { max-height: 220px; }
+
+        .table-section {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 8px;
+            padding: 30px;
+        }
+
+        h2 {
+            color: #00e5ff;
+            font-size: 12px;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        th {
+            background: #000d1a;
+            color: #00e5ff;
+            font-size: 10px;
+            letter-spacing: 2px;
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid #00e5ff33;
+        }
+
+        td {
+            padding: 10px 16px;
+            border-bottom: 1px solid #ffffff08;
+            vertical-align: middle;
+        }
+
+        tr:hover td { background: #00e5ff08; }
+        .fp-row td { opacity: 0.5; }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .badge-CRITICAL { background: #ff444422; color: #ff4444; border: 1px solid #ff444444; }
+        .badge-HIGH { background: #ff884422; color: #ff8844; border: 1px solid #ff884444; }
+        .badge-MEDIUM { background: #ffaa0022; color: #ffaa00; border: 1px solid #ffaa0044; }
+        .badge-LOW { background: #00ff8822; color: #00ff88; border: 1px solid #00ff8844; }
+        .badge-UNKNOWN { background: #ffffff11; color: #aaaaaa; border: 1px solid #ffffff22; }
+        .badge-FP { background: #ffffff11; color: #ffffff44; border: 1px solid #ffffff22; text-decoration: line-through; }
+        .badge-ESC { background: #ffaa0022; color: #ffaa00; border: 1px solid #ffaa0044; }
+
+        .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .btn-fp {
+            background: transparent;
+            border: 1px solid #ff444444;
+            border-radius: 4px;
+            color: #ff4444;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            letter-spacing: 1px;
+            padding: 4px 8px;
+        }
+
+        .btn-fp:hover { background: #ff444422; }
+
+        .btn-esc {
+            background: transparent;
+            border: 1px solid #ffaa0044;
+            border-radius: 4px;
+            color: #ffaa00;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            letter-spacing: 1px;
+            padding: 4px 8px;
+        }
+
+        .btn-esc:hover { background: #ffaa0022; }
+
+        .btn-unfp, .btn-deesc {
+            background: transparent;
+            border: 1px solid #ffffff22;
+            border-radius: 4px;
+            color: #ffffff44;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            letter-spacing: 1px;
+            padding: 4px 8px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-unfp:hover, .btn-deesc:hover { background: #ffffff11; color: #fff; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000000aa;
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active { display: flex; }
+
+        .modal-box {
+            background: #020e1a;
+            border: 1px solid #00e5ff33;
+            border-radius: 8px;
+            padding: 30px;
+            width: 420px;
+        }
+
+        .modal-box h3 {
+            font-size: 12px;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .modal-box textarea {
+            width: 100%;
+            background: #050f1a;
+            border: 1px solid #00e5ff33;
+            border-radius: 4px;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 10px;
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+            margin-bottom: 12px;
+        }
+
+        .modal-box select {
+            width: 100%;
+            background: #050f1a;
+            border: 1px solid #00e5ff33;
+            border-radius: 4px;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 10px;
+            outline: none;
+            margin-bottom: 16px;
+        }
+
+        .modal-label {
+            color: #ffffff44;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .modal-buttons { display: flex; gap: 10px; }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, #006688, #00aad4);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            padding: 10px 20px;
+        }
+
+        .btn-cancel {
+            background: transparent;
+            border: 1px solid #ffffff22;
+            border-radius: 4px;
+            color: #ffffff44;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            padding: 10px 20px;
+        }
+
+        .fp-reason, .esc-note {
+            color: #ffffff33;
+            font-size: 10px;
+            font-style: italic;
+            margin-top: 3px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 24px;
+            color: #00e5ff;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .back-btn:hover { color: #fff; }
+        .no-data { text-align: center; color: #ffffff22; padding: 60px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <div class="logo">⬡ SENTINEL</div>
+        <div class="subtitle">INCIDENT HISTORY — {{ fullname }}</div>
+    </div>
+    <nav>
+        <a href="/">ANALYZE</a>
+        <a href="/history">HISTORY</a>
+        <a href="/escalated" style="color:#ffaa00;">ESCALATED</a>
+        <a href="/logout" style="color:#ff4444;">LOGOUT</a>
+    </nav>
+</header>
+
+<div class="container">
+
+    <a href="/" class="back-btn">← Back to Dashboard</a>
+
+   <!-- Search and Filter -->
+<div style="background:#020e1a; border:1px solid #00e5ff22; border-radius:8px; padding:20px; margin-bottom:24px;">
+    <form method="GET" action="/history" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end;">
+        
+        <div style="flex:2; min-width:200px;">
+            <div style="color:#ffffff44; font-size:10px; letter-spacing:1px; margin-bottom:6px;">SEARCH</div>
+            <input 
+                type="text" 
+                name="search" 
+                value="{{ search }}"
+                placeholder="Search by alert, IP, analyst..."
+                style="width:100%; background:#050f1a; border:1px solid #00e5ff33; border-radius:4px; color:#c8d8e8; font-family:'Courier New',monospace; font-size:12px; padding:10px 12px; outline:none;"
+            />
+        </div>
+
+        <div style="flex:1; min-width:150px;">
+            <div style="color:#ffffff44; font-size:10px; letter-spacing:1px; margin-bottom:6px;">SEVERITY</div>
+            <select name="severity" style="width:100%; background:#050f1a; border:1px solid #00e5ff33; border-radius:4px; color:#c8d8e8; font-family:'Courier New',monospace; font-size:12px; padding:10px; outline:none;">
+                <option value="" {% if not severity_filter %}selected{% endif %}>ALL SEVERITIES</option>
+                <option value="CRITICAL" {% if severity_filter == 'CRITICAL' %}selected{% endif %}>CRITICAL</option>
+                <option value="HIGH RISK" {% if severity_filter == 'HIGH RISK' %}selected{% endif %}>HIGH RISK</option>
+                <option value="MEDIUM RISK" {% if severity_filter == 'MEDIUM RISK' %}selected{% endif %}>MEDIUM RISK</option>
+                <option value="LOW RISK" {% if severity_filter == 'LOW RISK' %}selected{% endif %}>LOW RISK</option>
+                <option value="UNKNOWN" {% if severity_filter == 'UNKNOWN' %}selected{% endif %}>UNKNOWN</option>
+            </select>
+        </div>
+
+        <div style="flex:1; min-width:150px;">
+            <div style="color:#ffffff44; font-size:10px; letter-spacing:1px; margin-bottom:6px;">STATUS</div>
+            <select name="status" style="width:100%; background:#050f1a; border:1px solid #00e5ff33; border-radius:4px; color:#c8d8e8; font-family:'Courier New',monospace; font-size:12px; padding:10px; outline:none;">
+                <option value="" {% if not status_filter %}selected{% endif %}>ALL STATUS</option>
+                <option value="open" {% if status_filter == 'open' %}selected{% endif %}>OPEN</option>
+                <option value="escalated" {% if status_filter == 'escalated' %}selected{% endif %}>ESCALATED</option>
+                <option value="fp" {% if status_filter == 'fp' %}selected{% endif %}>FALSE POSITIVE</option>
+            </select>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+            <button type="submit" style="background:linear-gradient(135deg,#006688,#00aad4); border:none; border-radius:4px; color:white; cursor:pointer; font-family:'Courier New',monospace; font-size:11px; font-weight:bold; letter-spacing:1px; padding:10px 20px;">
+                SEARCH →
+            </button>
+            <a href="/history" style="background:transparent; border:1px solid #ffffff22; border-radius:4px; color:#ffffff44; font-family:'Courier New',monospace; font-size:11px; padding:10px 16px; text-decoration:none; display:inline-block;">
+                CLEAR
+            </a>
+        </div>
+
+    </form>
+</div>
+ <!-- Stats -->
+    <div class="stats">
+        <div class="stat-box">
+            <div class="stat-number">{{ incidents|length }}</div>
+            <div class="stat-label">TOTAL</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" style="color:#ff4444;">
+                {{ incidents|selectattr('severity', 'equalto', 'CRITICAL')|list|length }}
+            </div>
+            <div class="stat-label">CRITICAL</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" style="color:#ff8844;">
+                {{ incidents|selectattr('severity', 'equalto', 'HIGH RISK')|list|length }}
+            </div>
+            <div class="stat-label">HIGH RISK</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" style="color:#ffaa00;">
+                {{ incidents|selectattr('severity', 'equalto', 'MEDIUM RISK')|list|length }}
+            </div>
+            <div class="stat-label">MEDIUM</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" style="color:#00ff88;">
+                {{ incidents|selectattr('severity', 'equalto', 'LOW RISK')|list|length }}
+            </div>
+            <div class="stat-label">LOW RISK</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" style="color:#ffffff44;">
+                {{ incidents|selectattr('false_positive', 'equalto', true)|list|length }}
+            </div>
+            <div class="stat-label">FALSE POS</div>
+        </div>
+        <div class="stat-box">
+            <div class="stat-number" style="color:#ffaa00;">
+                {{ incidents|selectattr('escalated', 'equalto', true)|list|length }}
+            </div>
+            <div class="stat-label">ESCALATED</div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="chart-section">
+        <h2>INCIDENT ANALYTICS</h2>
+        <div class="charts-grid">
+            <div class="chart-box">
+                <h3>SEVERITY BREAKDOWN</h3>
+                <canvas id="severityChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>THREAT DISTRIBUTION</h3>
+                <canvas id="donutChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-section">
+        <h2>ALL INCIDENTS</h2>
+        {% if incidents %}
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>TIMESTAMP</th>
+                    <th>ALERT</th>
+                    <th>SEVERITY</th>
+                    <th>IP</th>
+                    <th>SCORE</th>
+                    <th>ANALYST</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for incident in incidents %}
+                <tr class="{{ 'fp-row' if incident.false_positive else '' }}">
+                    <td style="color:#ffffff44;">{{ incident.id }}</td>
+                    <td style="color:#ffffff66; font-size:11px;">{{ incident.timestamp }}</td>
+                    <td style="max-width:180px;">
+                        {{ incident.alert[:45] }}{% if incident.alert|length > 45 %}...{% endif %}
+                        {% if incident.false_positive and incident.fp_reason %}
+                            <div class="fp-reason">FP: {{ incident.fp_reason }}</div>
+                        {% endif %}
+                        {% if incident.escalated and incident.escalation_notes %}
+                            <div class="esc-note">↑ {{ incident.escalation_notes[:40] }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if incident.false_positive %}
+                            <span class="badge badge-FP">FALSE POS</span>
+                        {% elif incident.escalated %}
+                            <span class="badge badge-ESC">ESCALATED</span>
+                        {% elif incident.severity == 'CRITICAL' %}
+                            <span class="badge badge-CRITICAL">CRITICAL</span>
+                        {% elif incident.severity == 'HIGH RISK' %}
+                            <span class="badge badge-HIGH">HIGH RISK</span>
+                        {% elif incident.severity == 'MEDIUM RISK' %}
+                            <span class="badge badge-MEDIUM">MEDIUM</span>
+                        {% elif incident.severity == 'LOW RISK' %}
+                            <span class="badge badge-LOW">LOW RISK</span>
+                        {% else %}
+                            <span class="badge badge-UNKNOWN">UNKNOWN</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:#00e5ff;">{{ incident.ip or "N/A" }}</td>
+                    <td>
+                        {% if incident.score is not none %}
+                            <span style="color:{% if incident.score >= 80 %}#ff4444{% elif incident.score >= 40 %}#ffaa00{% else %}#00ff88{% endif %}">
+                                {{ incident.score }}%
+                            </span>
+                        {% else %}
+                            <span style="color:#ffffff33">N/A</span>
+                        {% endif %}
+                    </td>
+                    <td style="color:#ffffff66;">{{ incident.analyst }}</td>
+                    <td>
+                        <div class="actions">
+                            {% if not incident.false_positive and not incident.escalated %}
+                                <button class="btn-fp" onclick="openFPModal({{ incident.id }})">MARK FP</button>
+                                <button class="btn-esc" onclick="openEscModal({{ incident.id }})">ESCALATE</button>
+                            {% endif %}
+                            {% if incident.false_positive %}
+                                <a href="/unflag_fp/{{ incident.id }}" class="btn-unfp">UNDO FP</a>
+                            {% endif %}
+                            {% if incident.escalated %}
+                                <a href="/deescalate/{{ incident.id }}" class="btn-deesc">RESOLVE</a>
+                            {% endif %}
+                        <a href="/export_pdf/{{ incident.id }}" class="btn-unfp" style="color:#00e5ff; border-color:#00e5ff44;">
+    PDF
+</a>
+</div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="no-data">No incidents yet — analyze your first alert</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- FP Modal -->
+<div class="modal" id="fpModal">
+    <div class="modal-box">
+        <h3 style="color:#ff4444;">MARK AS FALSE POSITIVE</h3>
+        <form method="POST" id="fpForm" action="">
+            <span class="modal-label">REASON</span>
+            <textarea name="reason" placeholder="e.g. Authorized scan, Known internal tool, Whitelisted IP..."></textarea>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-confirm">CONFIRM →</button>
+                <button type="button" class="btn-cancel" onclick="closeFPModal()">CANCEL</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Escalation Modal -->
+<div class="modal" id="escModal">
+    <div class="modal-box">
+        <h3 style="color:#ffaa00;">ESCALATE TO L2 ANALYST</h3>
+        <form method="POST" id="escForm" action="">
+            <span class="modal-label">PRIORITY LEVEL</span>
+            <select name="priority">
+                <option value="CRITICAL">CRITICAL — Immediate response required</option>
+                <option value="HIGH" selected>HIGH — Response within 1 hour</option>
+                <option value="MEDIUM">MEDIUM — Response within 4 hours</option>
+            </select>
+            <span class="modal-label">ESCALATION NOTES</span>
+            <textarea name="notes" placeholder="Describe what you found, what actions you took, what needs L2 attention..."></textarea>
+            <div class="modal-buttons">
+                <button type="submit" class="btn-confirm">ESCALATE →</button>
+                <button type="button" class="btn-cancel" onclick="closeEscModal()">CANCEL</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openFPModal(id) {
+        document.getElementById('fpForm').action = '/flag_fp/' + id;
+        document.getElementById('fpModal').classList.add('active');
+    }
+    function closeFPModal() {
+        document.getElementById('fpModal').classList.remove('active');
+    }
+    function openEscModal(id) {
+        document.getElementById('escForm').action = '/escalate/' + id;
+        document.getElementById('escModal').classList.add('active');
+    }
+    function closeEscModal() {
+        document.getElementById('escModal').classList.remove('active');
+    }
+
+    const critical = {{ incidents|selectattr('severity', 'equalto', 'CRITICAL')|list|length }};
+    const high = {{ incidents|selectattr('severity', 'equalto', 'HIGH RISK')|list|length }};
+    const medium = {{ incidents|selectattr('severity', 'equalto', 'MEDIUM RISK')|list|length }};
+    const low = {{ incidents|selectattr('severity', 'equalto', 'LOW RISK')|list|length }};
+    const unknown = {{ incidents|selectattr('severity', 'equalto', 'UNKNOWN')|list|length }};
+
+    new Chart(document.getElementById('severityChart'), {
+        type: 'bar',
+        data: {
+            labels: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'UNKNOWN'],
+            datasets: [{
+                data: [critical, high, medium, low, unknown],
+                backgroundColor: ['#ff444444','#ff884444','#ffaa0044','#00ff8844','#ffffff22'],
+                borderColor: ['#ff4444','#ff8844','#ffaa00','#00ff88','#aaaaaa'],
+                borderWidth: 1,
+                borderRadius: 4,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#ffffff44', font: { size: 9 } }, grid: { color: '#ffffff08' } },
+                y: { ticks: { color: '#ffffff44', font: { size: 9 }, stepSize: 1 }, grid: { color: '#ffffff08' } }
+            }
+        }
+    });
+
+    new Chart(document.getElementById('donutChart'), {
+        type: 'doughnut',
+        data: {
+            labels: ['CRITICAL', 'HIGH RISK', 'MEDIUM RISK', 'LOW RISK', 'UNKNOWN'],
+            datasets: [{
+                data: [critical, high, medium, low, unknown],
+                backgroundColor: ['#ff444444','#ff884444','#ffaa0044','#00ff8844','#ffffff22'],
+                borderColor: ['#ff4444','#ff8844','#ffaa00','#00ff88','#aaaaaa'],
+                borderWidth: 1,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: { color: '#ffffff44', font: { size: 9 }, padding: 10 }
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL — SOC L1 Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #050a0f;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #000d1a;
+            border-bottom: 1px solid #00e5ff44;
+            padding: 16px 30px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            color: #00e5ff;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            color: #ffffff44;
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: #00ff88;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #00ff88;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        nav {
+            margin-left: auto;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #00e5ff;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        nav a:hover { color: #ffffff; }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .welcome {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .welcome-text {
+            font-size: 12px;
+            color: #ffffff66;
+            letter-spacing: 1px;
+        }
+
+        .welcome-name {
+            color: #00e5ff;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .quick-btn {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 6px;
+            color: #8ab4cc;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
+            padding: 12px;
+            text-align: left;
+            transition: all 0.15s;
+        }
+
+        .quick-btn:hover {
+            background: #00e5ff12;
+            border-color: #00e5ff44;
+            color: #fff;
+        }
+
+        .input-section {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .input-section h2 {
+            color: #00e5ff;
+            font-size: 12px;
+            letter-spacing: 3px;
+            margin-bottom: 16px;
+        }
+
+        textarea {
+            width: 100%;
+            background: #050f1a;
+            border: 1px solid #00e5ff33;
+            border-radius: 4px;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            padding: 14px;
+            resize: vertical;
+            min-height: 100px;
+            outline: none;
+        }
+
+        textarea:focus { border-color: #00e5ff88; }
+
+        button[type="submit"] {
+            margin-top: 14px;
+            background: linear-gradient(135deg, #006688, #00aad4);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            padding: 12px 30px;
+            box-shadow: 0 0 20px #00aad444;
+        }
+
+        button[type="submit"]:hover {
+            background: linear-gradient(135deg, #0088aa, #00ccff);
+        }
+
+        .result-section {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .result-section h2 {
+            color: #00e5ff;
+            font-size: 12px;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #00e5ff22;
+            padding-bottom: 10px;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .label {
+            color: #ffffff44;
+            min-width: 140px;
+            letter-spacing: 1px;
+        }
+
+        .value { color: #c8d8e8; }
+
+        .ip-section {
+            background: #00112a;
+            border: 1px solid #00e5ff22;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .ip-section h3 {
+            color: #00e5ff;
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin-bottom: 14px;
+        }
+
+        .score-bar {
+            background: #ffffff11;
+            border-radius: 4px;
+            height: 8px;
+            margin-top: 6px;
+            overflow: hidden;
+            width: 200px;
+        }
+
+        .score-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #00ff88, #ffaa00, #ff4444);
+        }
+
+        .report-saved {
+            background: #00ff8811;
+            border: 1px solid #00ff8833;
+            border-radius: 6px;
+            color: #00ff88;
+            font-size: 12px;
+            letter-spacing: 1px;
+            margin-top: 20px;
+            padding: 12px 16px;
+        }
+
+        .no-ip {
+            color: #ffffff44;
+            font-size: 12px;
+            margin-top: 16px;
+        }
+
+        .tips {
+            background: #020e1a;
+            border: 1px solid #00e5ff11;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-top: 24px;
+        }
+
+        .tips h3 {
+            color: #ffffff33;
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .tip {
+            color: #ffffff22;
+            font-size: 11px;
+            margin-bottom: 6px;
+            padding-left: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <div class="logo">⬡ SENTINEL</div>
+        <div class="subtitle">SOC L1 ANALYST DASHBOARD</div>
+    </div>
+    <div class="status">
+        <div class="dot"></div>
+        ONLINE
+    </div>
+    <nav>
+        <a href="/">ANALYZE</a>
+        <a href="/history">HISTORY</a>
+        <a href="/escalated" style="color:#ffaa00;">ESCALATED</a>
+        <a href="/logout" style="color:#ff4444;">LOGOUT</a>
+    </nav>
+</header>
+
+<div class="container">
+
+    <!-- Welcome -->
+    <div class="welcome">
+        <div>
+            <div class="welcome-text">WELCOME BACK</div>
+            <div class="welcome-name">{{ fullname }}</div>
+        </div>
+        <div style="margin-left:auto; text-align:right;">
+            <div class="welcome-text">ANALYST ID</div>
+            <div style="color:#ffffff66; font-size:12px;">{{ analyst }}</div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <button class="quick-btn" onclick="fillAlert('Multiple failed login attempts detected from IP ')">
+            🔴 Brute Force Alert
+        </button>
+        <button class="quick-btn" onclick="fillAlert('Malware detected in file upload from IP ')">
+            🔴 Malware Alert
+        </button>
+        <button class="quick-btn" onclick="fillAlert('Ransomware activity detected from IP ')">
+            🔴 Ransomware Alert
+        </button>
+        <button class="quick-btn" onclick="fillAlert('PowerShell encoded command executed by ')">
+            🟡 PowerShell Alert
+        </button>
+        <button class="quick-btn" onclick="fillAlert('Large file transfer to external IP ')">
+            🟡 Data Exfiltration
+        </button>
+        <button class="quick-btn" onclick="fillAlert('User login from new location detected for user ')">
+            🟡 Suspicious Login
+        </button>
+    </div>
+
+    <!-- Input Form -->
+    <div class="input-section">
+        <h2>PASTE ALERT FOR ANALYSIS</h2>
+        <form method="POST">
+            <textarea
+                id="alertBox"
+                name="alert"
+                placeholder="Paste any SIEM alert here and click Analyze..."></textarea>
+            <br>
+            <button type="submit">ANALYZE ALERT →</button>
+        </form>
+    </div>
+
+    {% if result %}
+    <div class="result-section">
+        <h2>ANALYSIS RESULTS</h2>
+
+        <div class="row">
+            <span class="label">TIMESTAMP</span>
+            <span class="value">{{ result.timestamp }}</span>
+        </div>
+        <div class="row">
+            <span class="label">ALERT</span>
+            <span class="value">{{ result.alert }}</span>
+        </div>
+        <div class="row">
+            <span class="label">SEVERITY</span>
+            <span class="value" style="color:
+                {% if result.severity == 'CRITICAL' %}#ff4444
+                {% elif result.severity == 'HIGH RISK' %}#ff8844
+                {% elif result.severity == 'MEDIUM RISK' %}#ffaa00
+                {% elif result.severity == 'LOW RISK' %}#00ff88
+                {% else %}#aaaaaa{% endif %};
+                font-weight:bold;">
+                {{ result.severity }}
+            </span>
+        </div>
+        <div class="row">
+            <span class="label">ANALYSIS</span>
+            <span class="value">{{ result.analysis }}</span>
+        </div>
+
+        {% if result.ip_data %}
+        <div class="ip-section">
+            <h3>LIVE IP INTELLIGENCE</h3>
+            <div class="row">
+                <span class="label">IP ADDRESS</span>
+                <span class="value">{{ result.ip_data.ip }}</span>
+            </div>
+            <div class="row">
+                <span class="label">COUNTRY</span>
+                <span class="value">{{ result.ip_data.country }}</span>
+            </div>
+            <div class="row">
+                <span class="label">ISP</span>
+                <span class="value">{{ result.ip_data.isp }}</span>
+            </div>
+            <div class="row">
+                <span class="label">ABUSE SCORE</span>
+                <span class="value">{{ result.ip_data.score }}%
+                    <div class="score-bar">
+                        <div class="score-fill" style="width:{{ result.ip_data.score }}%"></div>
+                    </div>
+                </span>
+            </div>
+            <div class="row">
+                <span class="label">TOTAL REPORTS</span>
+                <span class="value">{{ result.ip_data.reports }}</span>
+            </div>
+            <div class="row">
+                <span class="label">IP VERDICT</span>
+                <span class="value" style="color:#ff4444; font-weight:bold;">
+                    {{ result.ip_data.verdict }}
+                </span>
+            </div>
+        </div>
+        {% else %}
+        <div class="no-ip">⚪ No IP address found in this alert</div>
+        {% endif %}
+
+        <div class="report-saved">
+            ✅ Incident saved to database and history
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Tips -->
+    <div class="tips">
+        <h3>SOC L1 QUICK TIPS</h3>
+        <div class="tip">› Always verify high risk alerts before escalating</div>
+        <div class="tip">› Check IP reputation before blocking at firewall</div>
+        <div class="tip">› Document everything — every action, every finding</div>
+        <div class="tip">› When in doubt — escalate to L2</div>
+        <div class="tip">› Ransomware — isolate first, investigate after</div>
+    </div>
+
+</div>
+
+<script>
+    function fillAlert(text) {
+        document.getElementById('alertBox').value = text;
+        document.getElementById('alertBox').focus();
+    }
+</script>
+
+</body>
+</html>

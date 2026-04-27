@@ -1,0 +1,46 @@
+
+============================================================
+           SENTINEL SOC L1 INCIDENT REPORT
+============================================================
+
+REPORT GENERATED : 2026-04-26 14:04:28
+ANALYST LEVEL    : L1
+STATUS           : Open — Pending L2 Review
+
+------------------------------------------------------------
+ALERT DETAILS
+------------------------------------------------------------
+ALERT            : Multiple failed login attempts from IP 185.220.101.45
+SEVERITY         : HIGH RISK
+ANALYSIS         : Possible brute force attack
+
+------------------------------------------------------------
+IP INTELLIGENCE
+------------------------------------------------------------
+IP ADDRESS       : 185.220.101.45
+COUNTRY          : DE
+ISP              : Network for Tor-Exit traffic.
+ABUSE SCORE      : 97%
+TOTAL REPORTS    : 99
+IP VERDICT       : HIGHLY MALICIOUS — Block immediately
+
+------------------------------------------------------------
+RECOMMENDED ACTIONS
+------------------------------------------------------------
+1. Block suspicious IP at firewall
+2. Investigate affected user account
+3. Escalate to L2 analyst
+4. Check for lateral movement
+5. Document all findings
+
+------------------------------------------------------------
+ESCALATION NOTES
+------------------------------------------------------------
+[ ] Escalated to L2 Analyst
+[ ] Ticket created in SIEM
+[ ] User notified
+[ ] Manager informed
+
+============================================================
+                    END OF REPORT
+============================================================

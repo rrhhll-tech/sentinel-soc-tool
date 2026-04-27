@@ -1,0 +1,8 @@
+SENTINEL SOC L1 INCIDENT REPORT
+Generated: 2026-04-26 14:23:36
+Alert: Multiple failed login attempts from IP 185.220.101.45
+Severity: HIGH RISK
+Analysis: Possible brute force attack
+IP: 185.220.101.45
+Score: 97%
+Verdict: HIGHLY MALICIOUS — Block immediately
