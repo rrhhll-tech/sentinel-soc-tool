@@ -1,0 +1,10 @@
+Failed password for invalid user admin from 192.168.1.105 port 22 ssh2
+Malware detected in file upload from 185.220.101.45
+Multiple failed login attempts from IP 45.33.32.156
+Ransomware activity detected on DESKTOP-042
+PowerShell encoded command executed by jsmith
+Large file transfer to external IP 8.8.8.8 detected
+User login from new location detected for jsmith
+Accepted password for user john from 10.0.0.1 port 22 ssh2
+Authentication failure for root from 185.220.101.45
+Port scan detected from 45.33.32.156

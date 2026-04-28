@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL — Log Upload</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #050a0f;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #000d1a;
+            border-bottom: 1px solid #00e5ff44;
+            padding: 16px 30px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            color: #00e5ff;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            color: #ffffff44;
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        nav {
+            margin-left: auto;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #00e5ff;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        nav a:hover { color: #ffffff; }
+
+        .container {
+            max-width: 1000px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 24px;
+            color: #00e5ff;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .back-btn:hover { color: #fff; }
+
+        .upload-section {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 8px;
+            padding: 40px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .upload-section h2 {
+            color: #00e5ff;
+            font-size: 12px;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+        }
+
+        .upload-section p {
+            color: #ffffff33;
+            font-size: 11px;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        .upload-area {
+            border: 2px dashed #00e5ff33;
+            border-radius: 8px;
+            padding: 40px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-area:hover {
+            border-color: #00e5ff88;
+            background: #00e5ff08;
+        }
+
+        .upload-icon {
+            font-size: 40px;
+            margin-bottom: 12px;
+        }
+
+        .upload-text {
+            color: #ffffff44;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #006688, #00aad4);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            padding: 12px 30px;
+            box-shadow: 0 0 20px #00aad444;
+            margin-top: 16px;
+        }
+
+        .btn-upload:hover {
+            background: linear-gradient(135deg, #0088aa, #00ccff);
+        }
+
+        .supported {
+            color: #ffffff22;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-top: 16px;
+        }
+
+        .results-section {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 8px;
+            padding: 30px;
+        }
+
+        .results-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #00e5ff22;
+        }
+
+        .results-title {
+            color: #00e5ff;
+            font-size: 12px;
+            letter-spacing: 3px;
+        }
+
+        .results-count {
+            background: #00e5ff22;
+            color: #00e5ff;
+            border-radius: 4px;
+            padding: 4px 12px;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        .threat-card {
+            background: #00112a;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 3px solid #00e5ff;
+        }
+
+        .threat-card.critical {
+            border-left-color: #ff4444;
+            background: #1a0000;
+        }
+
+        .threat-card.high {
+            border-left-color: #ff8844;
+            background: #1a0a00;
+        }
+
+        .threat-card.medium {
+            border-left-color: #ffaa00;
+            background: #1a1400;
+        }
+
+        .threat-card.low {
+            border-left-color: #00ff88;
+            background: #001a0a;
+        }
+
+        .threat-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .badge-CRITICAL { background: #ff444422; color: #ff4444; border: 1px solid #ff444444; }
+        .badge-HIGH { background: #ff884422; color: #ff8844; border: 1px solid #ff884444; }
+        .badge-MEDIUM { background: #ffaa0022; color: #ffaa00; border: 1px solid #ffaa0044; }
+        .badge-LOW { background: #00ff8822; color: #00ff88; border: 1px solid #00ff8844; }
+
+        .threat-line {
+            color: #c8d8e8;
+            font-size: 11px;
+            line-height: 1.6;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+
+        .threat-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            font-size: 10px;
+            color: #ffffff44;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            color: #00e5ff;
+        }
+
+        .mitre-badge {
+            background: #ff440022;
+            border: 1px solid #ff440044;
+            color: #ff8844;
+            border-radius: 4px;
+            padding: 3px 8px;
+            font-size: 9px;
+            letter-spacing: 1px;
+        }
+
+        .no-threats {
+            text-align: center;
+            color: #00ff88;
+            padding: 40px;
+            font-size: 14px;
+        }
+
+        .sample-logs {
+            background: #020e1a;
+            border: 1px solid #00e5ff11;
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .sample-logs h3 {
+            color: #ffffff33;
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .log-line {
+            color: #ffffff22;
+            font-size: 11px;
+            padding: 6px 0;
+            border-bottom: 1px solid #ffffff08;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <div class="logo">⬡ SENTINEL</div>
+        <div class="subtitle">LOG FILE ANALYZER</div>
+    </div>
+    <nav>
+        <a href="/">ANALYZE</a>
+        <a href="/upload_log" style="color:#00ff88;">LOG UPLOAD</a>
+        <a href="/history">HISTORY</a>
+        <a href="/mitre" style="color:#ff8844;">MITRE</a>
+        <a href="/ai_assistant" style="color:#a855f7;">AI</a>
+        <a href="/escalated" style="color:#ffaa00;">ESCALATED</a>
+        <a href="/logout" style="color:#ff4444;">LOGOUT</a>
+    </nav>
+</header>
+
+<div class="container">
+
+    <a href="/" class="back-btn">← Back to Dashboard</a>
+
+    <!-- Upload Form -->
+    <div class="upload-section">
+        <h2>UPLOAD LOG FILE FOR ANALYSIS</h2>
+        <p>SENTINEL will scan every line and detect threats automatically</p>
+
+        <form method="POST" enctype="multipart/form-data">
+            <div class="upload-area" onclick="document.getElementById('logfile').click()">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Click to select log file</div>
+                <div class="upload-text" id="filename-display" style="color:#00e5ff; margin-top:8px;"></div>
+            </div>
+            <input type="file" id="logfile" name="logfile" accept=".log,.txt,.csv"
+                   onchange="document.getElementById('filename-display').textContent = this.files[0].name">
+            <br>
+            <button type="submit" class="btn-upload">SCAN LOG FILE →</button>
+        </form>
+
+        <div class="supported">
+            Supported formats: .log .txt .csv — Max size: 16MB
+        </div>
+    </div>
+
+    <!-- Results -->
+    {% if results is not none %}
+    <div class="results-section">
+        <div class="results-header">
+            <div class="results-title">SCAN RESULTS</div>
+            <div class="results-count">{{ results|length }} THREATS FOUND</div>
+            {% if filename %}
+            <div style="color:#ffffff33; font-size:11px; margin-left:auto;">{{ filename }}</div>
+            {% endif %}
+        </div>
+
+        {% if results %}
+            {% for r in results %}
+            <div class="threat-card {{ r.severity.lower().replace(' ', '') if r.severity else '' }}">
+                <div class="threat-top">
+                    <span class="badge badge-{{ r.severity.replace(' ', '_') if r.severity else 'UNKNOWN' }}">
+                        {{ r.severity }}
+                    </span>
+                    {% if r.mitre_id %}
+                    <span class="mitre-badge">{{ r.mitre_id }} — {{ r.mitre_name }}</span>
+                    {% endif %}
+                </div>
+                <div class="threat-line">{{ r.line }}</div>
+                <div class="threat-meta">
+                    <div class="meta-item">ANALYSIS: <span class="meta-value">{{ r.analysis }}</span></div>
+                    {% if r.ip %}
+                    <div class="meta-item">IP: <span class="meta-value">{{ r.ip }}</span></div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="no-threats">
+            ✅ No threats detected in this log file
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Sample Logs -->
+    <div class="sample-logs">
+        <h3>SAMPLE LOG LINES YOU CAN TEST</h3>
+        <div class="log-line">Failed password for invalid user admin from 192.168.1.105 port 22 ssh2</div>
+        <div class="log-line">Malware detected in file upload from 185.220.101.45</div>
+        <div class="log-line">Multiple failed login attempts from IP 45.33.32.156</div>
+        <div class="log-line">Ransomware activity detected on DESKTOP-042</div>
+        <div class="log-line">PowerShell encoded command executed by jsmith</div>
+        <div class="log-line">Large file transfer to external IP 8.8.8.8 detected</div>
+        <div class="log-line">User login from new location detected</div>
+        <div class="log-line">Accepted password for user john from 10.0.0.1 port 22 ssh2</div>
+    </div>
+
+</div>
+
+</body>
+</html>

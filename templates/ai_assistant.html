@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL — AI Assistant</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #050a0f;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #000d1a;
+            border-bottom: 1px solid #00e5ff44;
+            padding: 16px 30px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            color: #00e5ff;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            color: #ffffff44;
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        nav {
+            margin-left: auto;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #00e5ff;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        nav a:hover { color: #ffffff; }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .page-title {
+            color: #00e5ff;
+            font-size: 12px;
+            letter-spacing: 4px;
+            margin-bottom: 6px;
+        }
+
+        .page-sub {
+            color: #ffffff33;
+            font-size: 11px;
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+        }
+
+        .ai-box {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 24px;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #00e5ff22;
+        }
+
+        .ai-icon {
+            font-size: 24px;
+        }
+
+        .ai-title {
+            color: #00e5ff;
+            font-size: 12px;
+            letter-spacing: 3px;
+        }
+
+        .ai-status {
+            margin-left: auto;
+            background: #00ff8822;
+            color: #00ff88;
+            border: 1px solid #00ff8844;
+            border-radius: 4px;
+            padding: 4px 12px;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        textarea {
+            width: 100%;
+            background: #00112a;
+            border: 1px solid #00e5ff33;
+            border-radius: 6px;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 16px;
+            resize: vertical;
+            min-height: 120px;
+            letter-spacing: 0.5px;
+            line-height: 1.6;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #00e5ff66;
+        }
+
+        textarea::placeholder {
+            color: #ffffff22;
+        }
+
+        .btn-ask {
+            background: linear-gradient(135deg, #006688, #00aad4);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            padding: 12px 30px;
+            box-shadow: 0 0 20px #00aad444;
+            margin-top: 16px;
+        }
+
+        .btn-ask:hover {
+            background: linear-gradient(135deg, #0088aa, #00ccff);
+        }
+
+        .response-box {
+            background: #00112a;
+            border: 1px solid #00e5ff33;
+            border-radius: 6px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .response-header {
+            color: #00e5ff;
+            font-size: 10px;
+            letter-spacing: 3px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #00e5ff22;
+        }
+
+        .question-display {
+            color: #ffffff44;
+            font-size: 11px;
+            margin-bottom: 16px;
+            padding: 10px;
+            background: #ffffff08;
+            border-radius: 4px;
+            border-left: 3px solid #00e5ff44;
+        }
+
+        .response-text {
+            color: #c8d8e8;
+            font-size: 12px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .sample-questions {
+            background: #020e1a;
+            border: 1px solid #00e5ff11;
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+
+        .sample-questions h3 {
+            color: #ffffff33;
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .question-chip {
+            display: inline-block;
+            background: #00e5ff11;
+            border: 1px solid #00e5ff22;
+            border-radius: 4px;
+            color: #00e5ff;
+            font-size: 10px;
+            padding: 6px 12px;
+            margin: 4px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+        }
+
+        .question-chip:hover {
+            background: #00e5ff22;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div>
+        <div class="logo">⬡ SENTINEL</div>
+        <div class="subtitle">AI ASSISTANT</div>
+    </div>
+    <nav>
+        <a href="/">ANALYZE</a>
+        <a href="/upload_log">LOG UPLOAD</a>
+        <a href="/history">HISTORY</a>
+        <a href="/mitre">MITRE</a>
+        <a href="/ai_assistant" style="color:#00ff88;">AI ASSISTANT</a>
+        <a href="/escalated" style="color:#ffaa00;">ESCALATED</a>
+        <a href="/logout" style="color:#ff4444;">LOGOUT</a>
+    </nav>
+</header>
+
+<div class="container">
+
+    <div class="page-title">SENTINEL AI ASSISTANT</div>
+    <div class="page-sub">Powered by Groq — Ask anything about threats, incidents, or security</div>
+
+    <div class="ai-box">
+        <div class="ai-header">
+            <div class="ai-icon">🤖</div>
+            <div class="ai-title">SENTINEL AI</div>
+            <div class="ai-status">● ONLINE</div>
+        </div>
+
+        <form method="POST">
+            <textarea name="question" placeholder="Ask SENTINEL AI anything...
+Example: What should I do if ransomware is detected on a workstation?
+Example: How do I investigate a brute force attack?
+Example: What is MITRE T1486?">{{ question or '' }}</textarea>
+            <br>
+            <button type="submit" class="btn-ask">ASK SENTINEL AI →</button>
+        </form>
+
+        {% if response %}
+        <div class="response-box">
+            <div class="response-header">SENTINEL AI RESPONSE</div>
+            {% if question %}
+            <div class="question-display">Q: {{ question }}</div>
+            {% endif %}
+            <div class="response-text">{{ response }}</div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="sample-questions">
+        <h3>SAMPLE QUESTIONS — CLICK TO USE</h3>
+        <span class="question-chip" onclick="document.querySelector('textarea').value=this.innerText">What should I do if ransomware is detected?</span>
+        <span class="question-chip" onclick="document.querySelector('textarea').value=this.innerText">How do I investigate a brute force attack?</span>
+        <span class="question-chip" onclick="document.querySelector('textarea').value=this.innerText">What is MITRE T1486?</span>
+        <span class="question-chip" onclick="document.querySelector('textarea').value=this.innerText">How do I detect SQL injection in logs?</span>
+        <span class="question-chip" onclick="document.querySelector('textarea').value=this.innerText">What is a SOC L1 analyst responsible for?</span>
+        <span class="question-chip" onclick="document.querySelector('textarea').value=this.innerText">How do I investigate suspicious PowerShell execution?</span>
+    </div>
+
+</div>
+
+</body>
+</html>
