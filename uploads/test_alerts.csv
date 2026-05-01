@@ -1,0 +1,11 @@
+timestamp,alert,source
+2026-04-27 10:00:01,Multiple failed login attempts from IP 185.220.101.45,firewall
+2026-04-27 10:01:23,Ransomware activity detected on DESKTOP-042,endpoint
+2026-04-27 10:02:45,Malware detected in file upload from IP 192.168.1.105,antivirus
+2026-04-27 10:03:12,User login from new location detected for jsmith,auth
+2026-04-27 10:04:33,Large file transfer to external IP 45.33.32.156,dlp
+2026-04-27 10:05:11,PowerShell encoded command executed by admin,edr
+2026-04-27 10:06:44,Port scan detected from IP 185.220.101.45,ids
+2026-04-27 10:07:22,SQL injection attempt detected from IP 45.33.32.156,waf
+2026-04-27 10:08:55,Phishing email detected for user jsmith,email
+2026-04-27 10:09:33,User logged in successfully from trusted device,auth

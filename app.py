@@ -5,16 +5,17 @@ from werkzeug.utils import secure_filename
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-from reportlab.platypus import Paragraph
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.enums import TA_CENTER
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from io import BytesIO
 import requests
-import anthropic
 import re
 import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 from functools import wraps
 
@@ -28,13 +29,32 @@ db = SQLAlchemy(app)
 
 os.makedirs("uploads", exist_ok=True)
 
+API_KEY = "c334492f110ff5c185f283f3742cca2c47c59c0c1226047dd6f82066dfd76e12b8998aa6b9c12a33"
 GROQ_KEY = "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"
+EMAIL_ADDRESS = "singhrahhhhhhh@gmail.com"
+EMAIL_PASSWORD = "lefl awrj uexf zqam"
+EMAIL_ALERTS_TO = "singhrahhhhhhh@gmail.com"
+
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    incident_id = db.Column(db.Integer, db.ForeignKey('incident.id'))
+    analyst = db.Column(db.String(50))
+    comment = db.Column(db.String(500))
+    timestamp = db.Column(db.String(100))
+class BlockedIP(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    ip = db.Column(db.String(50), unique=True)
+    reason = db.Column(db.String(300))
+    blocked_by = db.Column(db.String(50))
+    blocked_at = db.Column(db.String(100))
+    firewall_rule = db.Column(db.String(300))
 
 class Analyst(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     fullname = db.Column(db.String(100))
     username = db.Column(db.String(50), unique=True)
     password = db.Column(db.String(200))
+    email = db.Column(db.String(200))
     created_at = db.Column(db.String(100))
 
 class Incident(db.Model):
@@ -159,7 +179,71 @@ def check_ip(ip):
     except:
         return None
 
-def save_incident(alert, severity, analysis, ip_data, analyst_username, source="manual"):
+def send_email_alert(alert, severity, analysis, ip_data, incident_id, analyst_email=None):
+    try:
+        if severity not in ["CRITICAL", "HIGH RISK"]:
+            return
+        subject = f"SENTINEL ALERT — {severity} — Incident #{incident_id}"
+        body = f"""
+SENTINEL SOC L1 — AUTOMATIC ALERT NOTIFICATION
+================================================
+INCIDENT ID  : #{incident_id}
+SEVERITY     : {severity}
+ALERT        : {alert}
+ANALYSIS     : {analysis}
+TIMESTAMP    : {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+"""
+        if ip_data:
+            body += f"""
+IP INTELLIGENCE
+---------------
+IP ADDRESS   : {ip_data['ip']}
+COUNTRY      : {ip_data['country']}
+ISP          : {ip_data['isp']}
+ABUSE SCORE  : {ip_data['score']}%
+VERDICT      : {ip_data['verdict']}
+"""
+        if severity == "CRITICAL":
+            body += """
+IMMEDIATE ACTIONS REQUIRED
+---------------------------
+1. ISOLATE affected host immediately
+2. Block IP at firewall
+3. Escalate to L2 and L3 NOW
+4. Notify security manager
+5. Preserve logs and memory dump
+"""
+        else:
+            body += """
+RECOMMENDED ACTIONS
+--------------------
+1. Block suspicious IP at firewall
+2. Investigate affected user account
+3. Escalate to L2 analyst
+4. Check for lateral movement
+5. Document all findings
+"""
+        body += f"""
+================================================
+View incident: http://127.0.0.1:5000/history
+SENTINEL SOC L1 — Automated Alert System
+"""
+        msg = MIMEMultipart()
+        msg["From"] = EMAIL_ADDRESS
+        recipient = analyst_email if analyst_email else EMAIL_ALERTS_TO
+        msg["To"] = recipient
+        msg["Subject"] = subject
+        msg.attach(MIMEText(body, "plain"))
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
+        server.sendmail(EMAIL_ADDRESS, recipient, msg.as_string())
+        server.quit()
+        print(f"✅ Email alert sent for incident #{incident_id}")
+    except Exception as e:
+        print(f"⚠️ Email failed: {e}")
+
+def save_incident(alert, severity, analysis, ip_data, analyst_username, analyst_email=None, source="manual"):
     mitre_id, mitre_name = get_mitre(alert)
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     incident = Incident(
@@ -181,6 +265,7 @@ def save_incident(alert, severity, analysis, ip_data, analyst_username, source="
     )
     db.session.add(incident)
     db.session.commit()
+    send_email_alert(alert, severity, analysis, ip_data, incident.id, analyst_email)
     return incident
 
 @app.route("/register", methods=["GET", "POST"])
@@ -192,6 +277,7 @@ def register():
         username = request.form.get("username")
         password = request.form.get("password")
         confirm = request.form.get("confirm_password")
+        email = request.form.get("email")
         if password != confirm:
             error = "Passwords do not match"
         elif Analyst.query.filter_by(username=username).first():
@@ -202,6 +288,7 @@ def register():
                 fullname=fullname,
                 username=username,
                 password=hashed,
+                email=email,
                 created_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             )
             db.session.add(analyst)
@@ -219,6 +306,7 @@ def login():
         if analyst and check_password_hash(analyst.password, password):
             session["analyst"] = username
             session["fullname"] = analyst.fullname
+            session["email"] = analyst.email
             return redirect(url_for("index"))
         else:
             error = "Invalid analyst ID or access code"
@@ -238,7 +326,9 @@ def index():
         severity, analysis = analyze_alert(alert)
         ip = extract_ip(alert)
         ip_data = check_ip(ip) if ip else None
-        incident = save_incident(alert, severity, analysis, ip_data, session["analyst"])
+        incident = save_incident(alert, severity, analysis, ip_data,
+                                session["analyst"],
+                                analyst_email=session.get("email"))
         result = {
             "alert": alert,
             "severity": severity,
@@ -275,7 +365,9 @@ def upload_log():
                     ip = extract_ip(line)
                     ip_data = check_ip(ip) if ip else None
                     incident = save_incident(line, severity, analysis, ip_data,
-                                          session["analyst"], source="log_upload")
+                                          session["analyst"],
+                                          analyst_email=session.get("email"),
+                                          source="log_upload")
                     results.append({
                         "line": line[:100],
                         "severity": severity,
@@ -310,10 +402,12 @@ def history():
     elif status_filter == "fp":
         query = query.filter(Incident.false_positive == True)
     elif status_filter == "open":
-        query = query.filter(Incident.escalated == False, Incident.false_positive == False)
+        query = query.filter(Incident.escalated == False,
+                           Incident.false_positive == False)
     if source_filter:
         query = query.filter(Incident.source == source_filter)
     incidents = query.order_by(Incident.id.desc()).all()
+    blocked_ips = [b.ip for b in BlockedIP.query.all()]
     return render_template("history.html",
                            incidents=incidents,
                            analyst=session["analyst"],
@@ -321,15 +415,54 @@ def history():
                            search=search,
                            severity_filter=severity_filter,
                            status_filter=status_filter,
-                           source_filter=source_filter)
+                           source_filter=source_filter,
+                           blocked_ips=blocked_ips)
 
 @app.route("/escalated")
 @login_required
 def escalated():
-    incidents = Incident.query.filter_by(escalated=True).order_by(Incident.id.desc()).all()
+    incidents = Incident.query.filter_by(
+        escalated=True).order_by(Incident.id.desc()).all()
     return render_template("escalated.html", incidents=incidents,
                            analyst=session["analyst"],
                            fullname=session["fullname"])
+
+@app.route("/blocklist")
+@login_required
+def blocklist():
+    blocked_ips = BlockedIP.query.order_by(BlockedIP.id.desc()).all()
+    return render_template("blocklist.html",
+                           blocked_ips=blocked_ips,
+                           analyst=session["analyst"],
+                           fullname=session["fullname"])
+
+@app.route("/block_ip/<int:incident_id>", methods=["GET", "POST"])
+@login_required
+def block_ip(incident_id):
+    incident = Incident.query.get(incident_id)
+    if incident and incident.ip:
+        existing = BlockedIP.query.filter_by(ip=incident.ip).first()
+        if not existing:
+            firewall_rule = f"iptables -A INPUT -s {incident.ip} -j DROP"
+            blocked = BlockedIP(
+                ip=incident.ip,
+                reason=f"Blocked from incident #{incident.id} — {incident.analysis}",
+                blocked_by=session["analyst"],
+                blocked_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                firewall_rule=firewall_rule
+            )
+            db.session.add(blocked)
+            db.session.commit()
+    return redirect(url_for("blocklist"))
+
+@app.route("/unblock_ip/<int:block_id>")
+@login_required
+def unblock_ip(block_id):
+    blocked = BlockedIP.query.get(block_id)
+    if blocked:
+        db.session.delete(blocked)
+        db.session.commit()
+    return redirect(url_for("blocklist"))
 
 @app.route("/flag_fp/<int:incident_id>", methods=["GET", "POST"])
 @login_required
@@ -394,7 +527,8 @@ def export_pdf(incident_id):
         fontSize=18, textColor=colors.HexColor('#003366'),
         spaceAfter=6, alignment=TA_CENTER)
     subtitle_style = ParagraphStyle('subtitle', parent=styles['Normal'],
-        fontSize=10, textColor=colors.grey, spaceAfter=20, alignment=TA_CENTER)
+        fontSize=10, textColor=colors.grey,
+        spaceAfter=20, alignment=TA_CENTER)
     section_style = ParagraphStyle('section', parent=styles['Heading2'],
         fontSize=11, textColor=colors.HexColor('#003366'),
         spaceBefore=16, spaceAfter=8)
@@ -402,7 +536,9 @@ def export_pdf(incident_id):
         fontSize=10, spaceAfter=6, leading=16)
     story.append(Paragraph("SENTINEL SOC L1", title_style))
     story.append(Paragraph("INCIDENT REPORT", title_style))
-    story.append(Paragraph(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", subtitle_style))
+    story.append(Paragraph(
+        f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+        subtitle_style))
     story.append(Spacer(1, 0.2*inch))
     story.append(Paragraph("ALERT DETAILS", section_style))
     alert_data = [
@@ -426,7 +562,8 @@ def export_pdf(incident_id):
         ('FONTNAME', (0,1), (0,-1), 'Helvetica-Bold'),
         ('FONTSIZE', (0,1), (-1,-1), 9),
         ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
-        ('ROWBACKGROUNDS', (0,1), (-1,-1), [colors.white, colors.HexColor('#f9f9f9')]),
+        ('ROWBACKGROUNDS', (0,1), (-1,-1),
+         [colors.white, colors.HexColor('#f9f9f9')]),
         ('PADDING', (0,0), (-1,-1), 8),
         ('VALIGN', (0,0), (-1,-1), 'TOP'),
     ])
@@ -460,19 +597,34 @@ def export_pdf(incident_id):
     story.append(t3)
     story.append(Paragraph("RECOMMENDED ACTIONS", section_style))
     if incident.severity == "CRITICAL":
-        actions = ["1. ISOLATE affected host immediately", "2. Block IP at firewall",
-                   "3. Escalate to L2 and L3 NOW", "4. Notify security manager",
-                   "5. Preserve logs and memory dump"]
+        actions = [
+            "1. ISOLATE affected host immediately",
+            "2. Block IP at firewall",
+            "3. Escalate to L2 and L3 NOW",
+            "4. Notify security manager",
+            "5. Preserve logs and memory dump"
+        ]
     elif incident.severity == "HIGH RISK":
-        actions = ["1. Block suspicious IP at firewall", "2. Investigate affected user account",
-                   "3. Escalate to L2 analyst", "4. Check for lateral movement",
-                   "5. Document all findings"]
+        actions = [
+            "1. Block suspicious IP at firewall",
+            "2. Investigate affected user account",
+            "3. Escalate to L2 analyst",
+            "4. Check for lateral movement",
+            "5. Document all findings"
+        ]
     elif incident.severity == "MEDIUM RISK":
-        actions = ["1. Verify with affected user", "2. Monitor account for 24 hours",
-                   "3. Check login history", "4. Document findings"]
+        actions = [
+            "1. Verify with affected user",
+            "2. Monitor account for 24 hours",
+            "3. Check login history",
+            "4. Document findings"
+        ]
     else:
-        actions = ["1. Monitor and log", "2. No immediate action required",
-                   "3. Review if pattern continues"]
+        actions = [
+            "1. Monitor and log",
+            "2. No immediate action required",
+            "3. Review if pattern continues"
+        ]
     for action in actions:
         story.append(Paragraph(action, normal_style))
     story.append(Spacer(1, 0.3*inch))
@@ -483,24 +635,171 @@ def export_pdf(incident_id):
                     download_name=f"incident_{incident.id}_report.pdf",
                     mimetype="application/pdf")
 
-@app.route("/mitre")
+@app.route("/api/stats")
 @login_required
-def mitre():
-    incidents = Incident.query.filter(Incident.mitre_id != None).all()
-    mitre_stats = {}
-    for inc in incidents:
-        if inc.mitre_id:
-            if inc.mitre_id not in mitre_stats:
-                mitre_stats[inc.mitre_id] = {
-                    "id": inc.mitre_id,
-                    "name": inc.mitre_name,
-                    "count": 0,
-                    "severities": []
-                }
-            mitre_stats[inc.mitre_id]["count"] += 1
-            mitre_stats[inc.mitre_id]["severities"].append(inc.severity)
-    return render_template("mitre.html",
-                           mitre_stats=mitre_stats,
+def api_stats():
+    from datetime import date
+    today = date.today().strftime("%Y-%m-%d")
+    total_today = Incident.query.filter(
+        Incident.timestamp.like(f"{today}%")
+    ).count()
+    critical_today = Incident.query.filter(
+        Incident.timestamp.like(f"{today}%"),
+        Incident.severity == "CRITICAL"
+    ).count()
+    high_today = Incident.query.filter(
+        Incident.timestamp.like(f"{today}%"),
+        Incident.severity == "HIGH RISK"
+    ).count()
+    open_incidents = Incident.query.filter(
+        Incident.escalated == False,
+        Incident.false_positive == False
+    ).count()
+    escalated_count = Incident.query.filter(
+        Incident.escalated == True
+    ).count()
+    blocked_count = BlockedIP.query.count()
+    total_all = Incident.query.count()
+    return jsonify({
+        "total_today": total_today,
+        "critical_today": critical_today,
+        "high_today": high_today,
+        "open_incidents": open_incidents,
+        "escalated_count": escalated_count,
+        "blocked_count": blocked_count,
+        "total_all": total_all
+    })
+
+@app.route("/analyst_stats")
+@login_required
+def analyst_stats():
+    analysts = Analyst.query.all()
+    stats = []
+    for analyst in analysts:
+        total = Incident.query.filter_by(analyst=analyst.username).count()
+        critical = Incident.query.filter_by(
+            analyst=analyst.username,
+            severity="CRITICAL"
+        ).count()
+        high = Incident.query.filter_by(
+            analyst=analyst.username,
+            severity="HIGH RISK"
+        ).count()
+        escalated = Incident.query.filter_by(
+            analyst=analyst.username,
+            escalated=True
+        ).count()
+        fp_caught = Incident.query.filter_by(
+            analyst=analyst.username,
+            false_positive=True
+        ).count()
+        blocked = BlockedIP.query.filter_by(
+            blocked_by=analyst.username
+        ).count()
+        score = (total * 10) + (critical * 50) + (high * 30) + (escalated * 20) + (fp_caught * 15) + (blocked * 25)
+        stats.append({
+            "fullname": analyst.fullname,
+            "username": analyst.username,
+            "total": total,
+            "critical": critical,
+            "high": high,
+            "escalated": escalated,
+            "fp_caught": fp_caught,
+            "blocked": blocked,
+            "score": score
+        })
+    stats.sort(key=lambda x: x["score"], reverse=True)
+    return render_template("analyst_stats.html",
+                           stats=stats,
+                           analyst=session["analyst"],
+                           fullname=session["fullname"])
+@app.route("/upload_csv", methods=["GET", "POST"])
+@login_required
+def upload_csv():
+    results = None
+    filename = None
+    summary = None
+    if request.method == "POST":
+        file = request.files.get("csvfile")
+        if file and file.filename:
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+            file.save(filepath)
+            results = []
+            summary = {
+                "total": 0,
+                "critical": 0,
+                "high": 0,
+                "medium": 0,
+                "low": 0,
+                "unknown": 0
+            }
+            with open(filepath, "r", encoding="utf-8", errors="ignore") as f:
+                import csv
+                reader = csv.DictReader(f)
+                for row in reader:
+                    alert = row.get("alert") or row.get("Alert") or list(row.values())[0]
+                    if not alert:
+                        continue
+                    severity, analysis = analyze_alert(alert)
+                    ip = extract_ip(alert)
+                    ip_data = check_ip(ip) if ip else None
+                    incident = save_incident(
+                        alert, severity, analysis, ip_data,
+                        session["analyst"],
+                        analyst_email=session.get("email"),
+                        source="csv_upload"
+                    )
+                    results.append({
+                        "alert": alert[:80],
+                        "severity": severity,
+                        "analysis": analysis,
+                        "ip": ip,
+                        "mitre_id": incident.mitre_id,
+                        "mitre_name": incident.mitre_name,
+                    })
+                    summary["total"] += 1
+                    if severity == "CRITICAL":
+                        summary["critical"] += 1
+                    elif severity == "HIGH RISK":
+                        summary["high"] += 1
+                    elif severity == "MEDIUM RISK":
+                        summary["medium"] += 1
+                    elif severity == "LOW RISK":
+                        summary["low"] += 1
+                    else:
+                        summary["unknown"] += 1
+    return render_template("upload_csv.html",
+                           results=results,
+                           filename=filename,
+                           summary=summary,
+                           analyst=session["analyst"],
+                           fullname=session["fullname"])
+@app.route("/add_comment/<int:incident_id>", methods=["POST"])
+@login_required
+def add_comment(incident_id):
+    comment_text = request.form.get("comment")
+    if comment_text:
+        comment = Comment(
+            incident_id=incident_id,
+            analyst=session["analyst"],
+            comment=comment_text,
+            timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        )
+        db.session.add(comment)
+        db.session.commit()
+    return redirect(url_for("incident_detail", incident_id=incident_id))
+
+@app.route("/incident/<int:incident_id>")
+@login_required
+def incident_detail(incident_id):
+    incident = Incident.query.get(incident_id)
+    comments = Comment.query.filter_by(
+        incident_id=incident_id
+    ).order_by(Comment.id.asc()).all()
+    return render_template("incident_detail.html",
+                           incident=incident,
+                           comments=comments,
                            analyst=session["analyst"],
                            fullname=session["fullname"])
 @app.route("/ai_assistant", methods=["GET", "POST"])
@@ -538,6 +837,26 @@ def ai_assistant():
     return render_template("ai_assistant.html",
                            response=response,
                            question=question,
+                           analyst=session["analyst"],
+                           fullname=session["fullname"])
+@app.route("/mitre")
+@login_required
+def mitre():
+    incidents = Incident.query.filter(Incident.mitre_id != None).all()
+    mitre_stats = {}
+    for inc in incidents:
+        if inc.mitre_id:
+            if inc.mitre_id not in mitre_stats:
+                mitre_stats[inc.mitre_id] = {
+                    "id": inc.mitre_id,
+                    "name": inc.mitre_name,
+                    "count": 0,
+                    "severities": []
+                }
+            mitre_stats[inc.mitre_id]["count"] += 1
+            mitre_stats[inc.mitre_id]["severities"].append(inc.severity)
+    return render_template("mitre.html",
+                           mitre_stats=mitre_stats,
                            analyst=session["analyst"],
                            fullname=session["fullname"])
 with app.app_context():

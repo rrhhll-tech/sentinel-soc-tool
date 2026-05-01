@@ -170,6 +170,16 @@
                 required
             />
         </div>
+        <div class="field">
+    <label>EMAIL ADDRESS</label>
+    <input
+        type="email"
+        name="email"
+        placeholder="Enter your email address"
+        autocomplete="off"
+        required
+    />
+</div>
 
         <div class="field">
             <label>ACCESS CODE</label>
@@ -199,5 +209,11 @@
     <div class="footer">SENTINEL SECURITY OPERATIONS CENTER</div>
 </div>
 
+<script>
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+    }
+</script>
 </body>
 </html>

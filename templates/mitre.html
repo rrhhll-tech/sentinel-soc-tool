@@ -202,7 +202,43 @@
             letter-spacing: 2px;
             margin-top: 4px;
         }
-    </style>
+    body.light-mode {
+    background: #f5f7fa !important;
+    color: #1a2a3a !important;
+}
+body.light-mode header {
+    background: #003366 !important;
+}
+body.light-mode .section,
+body.light-mode .table-section,
+body.light-mode .chart-section,
+body.light-mode .stat-box,
+body.light-mode .upload-section,
+body.light-mode .results-section,
+body.light-mode .analyst-card,
+body.light-mode .scoring-info,
+body.light-mode .comment,
+body.light-mode .threat-card,
+body.light-mode .modal-box {
+    background: #ffffff !important;
+    border-color: #ccddee !important;
+    color: #1a2a3a !important;
+}
+body.light-mode table,
+body.light-mode th,
+body.light-mode td {
+    background: #ffffff !important;
+    color: #1a2a3a !important;
+    border-color: #ccddee !important;
+}
+body.light-mode th {
+    background: #003366 !important;
+    color: #ffffff !important;
+}
+body.light-mode nav a {
+    color: #ffffff !important;
+}
+</style>
 </head>
 <body>
 
@@ -275,5 +311,11 @@
 
 </div>
 
+<script>
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+    }
+</script>
 </body>
 </html>

@@ -5,6 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SENTINEL — SOC L1 Dashboard</title>
     <style>
+        :root {
+    --bg: #050a0f;
+    --bg2: #020e1a;
+    --bg3: #00112a;
+    --border: #00e5ff22;
+    --text: #c8d8e8;
+    --text-dim: #ffffff44;
+    --header-bg: #000d1a;
+}
+
+body.light-mode {
+    --bg: #f0f4f8;
+    --bg2: #ffffff;
+    --bg3: #e8f0f8;
+    --border: #00668822;
+    --text: #1a2a3a;
+    --text-dim: #66778899;
+    --header-bg: #003366;
+    --accent: #0066aa;
+}
+body.light-mode {
+    background: #f5f7fa !important;
+    color: #1a2a3a !important;
+}
+
+body.light-mode .logo {
+    color: #00ccff !important;
+}
+
+body.light-mode .status {
+    color: #00aa44 !important;
+}
+
+body.light-mode nav a {
+    color: #ffffff !important;
+}
+
+body.light-mode .welcome-name {
+    color: #003366 !important;
+}
+
+body.light-mode .welcome-text {
+    color: #667788 !important;
+}
+
+body.light-mode .stat-number {
+    color: #003366 !important;
+}
+
+body.light-mode .stat-label {
+    color: #667788 !important;
+}
+
+body.light-mode .quick-btn {
+    color: #1a2a3a !important;
+    border-color: #aabbcc !important;
+}
+
+body.light-mode .input-section h2 {
+    color: #003366 !important;
+}
+
+body.light-mode textarea {
+    color: #1a2a3a !important;
+    background: #f0f4f8 !important;
+}
+
+body.light-mode .tip {
+    color: #445566 !important;
+}
+
+body.light-mode #live-dot {
+    color: #00aa44 !important;
+}
+
+body.light-mode #last-updated {
+    color: #667788 !important;
+}
+body {
+    background: var(--bg);
+    color: var(--text);
+}
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
@@ -15,7 +97,7 @@
         }
 
         header {
-            background: #000d1a;
+            background: var(--header-bg);
             border-bottom: 1px solid #00e5ff44;
             padding: 16px 30px;
             display: flex;
@@ -81,7 +163,7 @@
         }
 
         .welcome {
-            background: #020e1a;
+            background: var(--bg2);
             border: 1px solid #00e5ff22;
             border-radius: 8px;
             padding: 20px 24px;
@@ -112,7 +194,7 @@
         }
 
         .quick-btn {
-            background: #020e1a;
+            background: var(--bg2);
             border: 1px solid #00e5ff22;
             border-radius: 6px;
             color: #8ab4cc;
@@ -132,7 +214,7 @@
         }
 
         .input-section {
-            background: #020e1a;
+             background: var(--bg2);
             border: 1px solid #00e5ff22;
             border-radius: 8px;
             padding: 30px;
@@ -182,7 +264,7 @@
         }
 
         .result-section {
-            background: #020e1a;
+             background: var(--bg2);
             border: 1px solid #00e5ff22;
             border-radius: 8px;
             padding: 30px;
@@ -214,7 +296,7 @@
         .value { color: #c8d8e8; }
 
         .ip-section {
-            background: #00112a;
+            background: var(--bg3);
             border: 1px solid #00e5ff22;
             border-radius: 6px;
             padding: 20px;
@@ -261,7 +343,7 @@
         }
 
         .tips {
-            background: #020e1a;
+            background: var(--bg2);
             border: 1px solid #00e5ff11;
             border-radius: 8px;
             padding: 20px 24px;
@@ -294,20 +376,63 @@
         <div class="dot"></div>
         ONLINE
     </div>
+    <button id="theme-toggle" onclick="toggleTheme()" style="
+    background: transparent;
+    border: 1px solid #00e5ff33;
+    border-radius: 4px;
+    color: #00e5ff;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    padding: 6px 14px;
+    margin-left: 10px;
+">🌙 DARK</button>
     <nav>
         <a href="/">ANALYZE</a>
         <a href="/upload_log">LOG UPLOAD</a>
+        <a href="/upload_csv" style="color:#00ff88;">CSV UPLOAD</a>
         <a href="/history">HISTORY</a>
         <a href="/mitre" style="color:#ff8844;">MITRE</a>
         <a href="/ai_assistant" style="color:#a855f7;">AI</a>
         <a href="/escalated" style="color:#ffaa00;">ESCALATED</a>
+        <a href="/blocklist" style="color:#ff4444;">BLOCKLIST</a>
+        <a href="/analyst_stats" style="color:#00ff88;">ANALYSTS</a>
         <a href="/logout" style="color:#ff4444;">LOGOUT</a>
     </nav>
 </header>
 
 <div class="container">
 
-    <!-- Welcome -->
+   <!-- Live Stats Counter -->
+<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:24px;">
+    <div style="background:#020e1a; border:1px solid #ff444433; border-radius:6px; padding:16px; text-align:center;">
+        <div id="critical-today" style="font-size:32px; font-weight:bold; color:#ff4444;">0</div>
+        <div style="font-size:9px; color:#ffffff33; letter-spacing:2px; margin-top:4px;">CRITICAL TODAY</div>
+    </div>
+    <div style="background:#020e1a; border:1px solid #ff884433; border-radius:6px; padding:16px; text-align:center;">
+        <div id="high-today" style="font-size:32px; font-weight:bold; color:#ff8844;">0</div>
+        <div style="font-size:9px; color:#ffffff33; letter-spacing:2px; margin-top:4px;">HIGH RISK TODAY</div>
+    </div>
+    <div style="background:#020e1a; border:1px solid #ffaa0033; border-radius:6px; padding:16px; text-align:center;">
+        <div id="open-incidents" style="font-size:32px; font-weight:bold; color:#ffaa00;">0</div>
+        <div style="font-size:9px; color:#ffffff33; letter-spacing:2px; margin-top:4px;">OPEN INCIDENTS</div>
+    </div>
+    <div style="background:#020e1a; border:1px solid #ff444433; border-radius:6px; padding:16px; text-align:center;">
+        <div id="blocked-count" style="font-size:32px; font-weight:bold; color:#ff4444;">0</div>
+        <div style="font-size:9px; color:#ffffff33; letter-spacing:2px; margin-top:4px;">BLOCKED IPs</div>
+    </div>
+</div>
+
+<!-- Live indicator -->
+<div style="text-align:right; margin-bottom:16px; margin-top:-16px;">
+    <span style="color:#ffffff22; font-size:10px; letter-spacing:1px;">
+        <span id="live-dot" style="color:#00ff88;">●</span>
+        LIVE — updates every 10 seconds —
+        Last updated: <span id="last-updated">--:--:--</span>
+    </span>
+</div>
+ <!-- Welcome -->
     <div class="welcome">
         <div>
             <div class="welcome-text">WELCOME BACK</div>
@@ -440,10 +565,51 @@
 </div>
 
 <script>
+    function toggleTheme() {
+    const body = document.body;
+    const btn = document.getElementById('theme-toggle');
+    if (body.classList.contains('light-mode')) {
+        body.classList.remove('light-mode');
+        btn.textContent = '🌙 DARK';
+        localStorage.setItem('theme', 'dark');
+    } else {
+        body.classList.add('light-mode');
+        btn.textContent = '☀️ LIGHT';
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+// Load saved theme
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme === 'light') {
+    document.body.classList.add('light-mode');
+    document.getElementById('theme-toggle').textContent = '☀️ LIGHT';
+}
     function fillAlert(text) {
         document.getElementById('alertBox').value = text;
         document.getElementById('alertBox').focus();
     }
+
+    function fetchStats() {
+        fetch('/api/stats')
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('critical-today').textContent = data.critical_today;
+                document.getElementById('high-today').textContent = data.high_today;
+                document.getElementById('open-incidents').textContent = data.open_incidents;
+                document.getElementById('blocked-count').textContent = data.blocked_count;
+                const now = new Date();
+                document.getElementById('last-updated').textContent =
+                    now.toTimeString().split(' ')[0];
+                const dot = document.getElementById('live-dot');
+                dot.style.color = '#ffffff';
+                setTimeout(() => { dot.style.color = '#00ff88'; }, 500);
+            })
+            .catch(err => console.log('Stats update failed:', err));
+    }
+
+    fetchStats();
+    setInterval(fetchStats, 10000);
 </script>
 
 </body>

@@ -332,7 +332,86 @@
 
         .back-btn:hover { color: #fff; }
         .no-data { text-align: center; color: #ffffff22; padding: 60px; }
-    </style>
+    body.light-mode {
+    background: #f5f7fa !important;
+    color: #1a2a3a !important;
+}
+body.light-mode header {
+    background: #003366 !important;
+}
+body.light-mode .section,
+body.light-mode .table-section,
+body.light-mode .chart-section,
+body.light-mode .stat-box,
+body.light-mode .upload-section,
+body.light-mode .results-section,
+body.light-mode .analyst-card,
+body.light-mode .scoring-info,
+body.light-mode .comment,
+body.light-mode .threat-card,
+body.light-mode .modal-box {
+    background: #ffffff !important;
+    border-color: #ccddee !important;
+    color: #1a2a3a !important;
+}
+body.light-mode table,
+body.light-mode th,
+body.light-mode td {
+    background: #ffffff !important;
+    color: #1a2a3a !important;
+    border-color: #ccddee !important;
+}
+body.light-mode th {
+    background: #003366 !important;
+    color: #ffffff !important;
+}
+body.light-mode nav a {
+    color: #ffffff !important;
+}
+body.light-mode {
+    background: #f5f7fa !important;
+    color: #1a2a3a !important;
+}
+body.light-mode header {
+    background: #003366 !important;
+}
+body.light-mode .table-section,
+body.light-mode .filters,
+body.light-mode .filter-group,
+body.light-mode .search-box,
+body.light-mode .stat-box,
+body.light-mode .section {
+    background: #ffffff !important;
+    border-color: #ccddee !important;
+    color: #1a2a3a !important;
+}
+body.light-mode table {
+    background: #ffffff !important;
+}
+body.light-mode th {
+    background: #003366 !important;
+    color: #ffffff !important;
+}
+body.light-mode td {
+    color: #1a2a3a !important;
+    border-color: #ccddee !important;
+}
+body.light-mode tr:hover {
+    background: #e8f0f8 !important;
+}
+body.light-mode nav a {
+    color: #ffffff !important;
+}
+body.light-mode input,
+body.light-mode select {
+    background: #f0f4f8 !important;
+    color: #1a2a3a !important;
+    border-color: #aabbcc !important;
+}
+body.light-mode .badge {
+    color: #1a2a3a !important;
+}
+</style>
 </head>
 <body>
 
@@ -348,6 +427,7 @@
         <a href="/mitre" style="color:#ff8844;">MITRE</a>
         <a href="/ai_assistant" style="color:#a855f7;">AI</a>
         <a href="/escalated" style="color:#ffaa00;">ESCALATED</a>
+        <a href="/blocklist" style="color:#ff4444;">BLOCKLIST</a>
         <a href="/logout" style="color:#ff4444;">LOGOUT</a>
     </nav>
 </header>
@@ -524,9 +604,17 @@
                     <td style="color:#ffffff66;">{{ incident.analyst }}</td>
                     <td>
                         <div class="actions">
+                            <a href="/incident/{{ incident.id }}" class="btn-unfp" style="color:#00e5ff; border-color:#00e5ff44;">
+    VIEW
+</a>
                             {% if not incident.false_positive and not incident.escalated %}
                                 <button class="btn-fp" onclick="openFPModal({{ incident.id }})">MARK FP</button>
                                 <button class="btn-esc" onclick="openEscModal({{ incident.id }})">ESCALATE</button>
+                                {% if incident.ip %}
+<a href="/block_ip/{{ incident.id }}" class="btn-fp" style="border-color:#ff444444; color:#ff4444;">
+    BLOCK IP
+</a>
+{% endif %}
                             {% endif %}
                             {% if incident.false_positive %}
                                 <a href="/unflag_fp/{{ incident.id }}" class="btn-unfp">UNDO FP</a>
@@ -652,5 +740,11 @@
     });
 </script>
 
+<script>
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+    }
+</script>
 </body>
 </html>

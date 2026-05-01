@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINEL — Log Upload</title>
+    <title>SENTINEL — Bulk CSV Upload</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -116,9 +116,7 @@
             letter-spacing: 1px;
         }
 
-        input[type="file"] {
-            display: none;
-        }
+        input[type="file"] { display: none; }
 
         .btn-upload {
             background: linear-gradient(135deg, #006688, #00aad4);
@@ -144,6 +142,34 @@
             font-size: 10px;
             letter-spacing: 1px;
             margin-top: 16px;
+        }
+
+        .summary-section {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .summary-box {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .summary-number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #00e5ff;
+        }
+
+        .summary-label {
+            font-size: 9px;
+            color: #ffffff33;
+            letter-spacing: 1px;
+            margin-top: 4px;
         }
 
         .results-section {
@@ -177,40 +203,29 @@
             letter-spacing: 1px;
         }
 
-        .threat-card {
-            background: #00112a;
-            border-radius: 6px;
-            padding: 16px;
-            margin-bottom: 12px;
-            border-left: 3px solid #00e5ff;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
         }
 
-        .threat-card.critical {
-            border-left-color: #ff4444;
-            background: #1a0000;
+        th {
+            background: #000d1a;
+            color: #00e5ff;
+            font-size: 10px;
+            letter-spacing: 2px;
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #00e5ff33;
         }
 
-        .threat-card.high {
-            border-left-color: #ff8844;
-            background: #1a0a00;
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ffffff08;
+            vertical-align: middle;
         }
 
-        .threat-card.medium {
-            border-left-color: #ffaa00;
-            background: #1a1400;
-        }
-
-        .threat-card.low {
-            border-left-color: #00ff88;
-            background: #001a0a;
-        }
-
-        .threat-top {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 8px;
-        }
+        tr:hover td { background: #00e5ff08; }
 
         .badge {
             padding: 3px 8px;
@@ -224,49 +239,19 @@
         .badge-HIGH { background: #ff884422; color: #ff8844; border: 1px solid #ff884444; }
         .badge-MEDIUM { background: #ffaa0022; color: #ffaa00; border: 1px solid #ffaa0044; }
         .badge-LOW { background: #00ff8822; color: #00ff88; border: 1px solid #00ff8844; }
-
-        .threat-line {
-            color: #c8d8e8;
-            font-size: 11px;
-            line-height: 1.6;
-            margin-bottom: 8px;
-            word-break: break-all;
-        }
-
-        .threat-meta {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .meta-item {
-            font-size: 10px;
-            color: #ffffff44;
-            letter-spacing: 0.5px;
-        }
-
-        .meta-value {
-            color: #00e5ff;
-        }
+        .badge-UNKNOWN { background: #ffffff11; color: #aaaaaa; border: 1px solid #ffffff22; }
 
         .mitre-badge {
             background: #ff440022;
             border: 1px solid #ff440044;
             color: #ff8844;
             border-radius: 4px;
-            padding: 3px 8px;
+            padding: 2px 6px;
             font-size: 9px;
             letter-spacing: 1px;
         }
 
-        .no-threats {
-            text-align: center;
-            color: #00ff88;
-            padding: 40px;
-            font-size: 14px;
-        }
-
-        .sample-logs {
+        .csv-format {
             background: #020e1a;
             border: 1px solid #00e5ff11;
             border-radius: 8px;
@@ -274,19 +259,21 @@
             margin-top: 24px;
         }
 
-        .sample-logs h3 {
+        .csv-format h3 {
             color: #ffffff33;
             font-size: 10px;
             letter-spacing: 2px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
-        .log-line {
-            color: #ffffff22;
+        .csv-example {
+            background: #000d1a;
+            border: 1px solid #ffffff11;
+            border-radius: 4px;
+            padding: 12px;
             font-size: 11px;
-            padding: 6px 0;
-            border-bottom: 1px solid #ffffff08;
-            line-height: 1.6;
+            color: #00ff88;
+            line-height: 1.8;
         }
     body.light-mode {
     background: #f5f7fa !important;
@@ -331,15 +318,16 @@ body.light-mode nav a {
 <header>
     <div>
         <div class="logo">⬡ SENTINEL</div>
-        <div class="subtitle">LOG FILE ANALYZER</div>
+        <div class="subtitle">BULK CSV ALERT UPLOAD</div>
     </div>
     <nav>
         <a href="/">ANALYZE</a>
-        <a href="/upload_log" style="color:#00ff88;">LOG UPLOAD</a>
+        <a href="/upload_log">LOG UPLOAD</a>
+        <a href="/upload_csv" style="color:#00ff88;">CSV UPLOAD</a>
         <a href="/history">HISTORY</a>
-        <a href="/mitre" style="color:#ff8844;">MITRE</a>
-        <a href="/ai_assistant" style="color:#a855f7;">AI</a>
         <a href="/escalated" style="color:#ffaa00;">ESCALATED</a>
+        <a href="/blocklist" style="color:#ff4444;">BLOCKLIST</a>
+        <a href="/analyst_stats" style="color:#00ff88;">ANALYSTS</a>
         <a href="/logout" style="color:#ff4444;">LOGOUT</a>
     </nav>
 </header>
@@ -350,76 +338,116 @@ body.light-mode nav a {
 
     <!-- Upload Form -->
     <div class="upload-section">
-        <h2>UPLOAD LOG FILE FOR ANALYSIS</h2>
-        <p>SENTINEL will scan every line and detect threats automatically</p>
+        <h2>BULK CSV ALERT UPLOAD</h2>
+        <p>Upload a CSV file with multiple alerts — SENTINEL processes all of them automatically</p>
 
         <form method="POST" enctype="multipart/form-data">
-            <div class="upload-area" onclick="document.getElementById('logfile').click()">
-                <div class="upload-icon">📁</div>
-                <div class="upload-text">Click to select log file</div>
-                <div class="upload-text" id="filename-display" style="color:#00e5ff; margin-top:8px;"></div>
+            <div class="upload-area" onclick="document.getElementById('csvfile').click()">
+                <div class="upload-icon">📊</div>
+                <div class="upload-text">Click to select CSV file</div>
+                <div class="upload-text" id="filename-display"
+                     style="color:#00e5ff; margin-top:8px;"></div>
             </div>
-            <input type="file" id="logfile" name="logfile" accept=".log,.txt,.csv"
+            <input type="file" id="csvfile" name="csvfile" accept=".csv"
                    onchange="document.getElementById('filename-display').textContent = this.files[0].name">
             <br>
-            <button type="submit" class="btn-upload">SCAN LOG FILE →</button>
+            <button type="submit" class="btn-upload">PROCESS CSV →</button>
         </form>
 
         <div class="supported">
-            Supported formats: .log .txt .csv — Max size: 16MB
+            Supported format: .csv — Must have an 'alert' column — Max size: 16MB
         </div>
     </div>
 
-    <!-- Results -->
-    {% if results is not none %}
+    {% if summary %}
+    <!-- Summary -->
+    <div class="summary-section">
+        <div class="summary-box">
+            <div class="summary-number">{{ summary.total }}</div>
+            <div class="summary-label">TOTAL</div>
+        </div>
+        <div class="summary-box">
+            <div class="summary-number" style="color:#ff4444;">{{ summary.critical }}</div>
+            <div class="summary-label">CRITICAL</div>
+        </div>
+        <div class="summary-box">
+            <div class="summary-number" style="color:#ff8844;">{{ summary.high }}</div>
+            <div class="summary-label">HIGH RISK</div>
+        </div>
+        <div class="summary-box">
+            <div class="summary-number" style="color:#ffaa00;">{{ summary.medium }}</div>
+            <div class="summary-label">MEDIUM</div>
+        </div>
+        <div class="summary-box">
+            <div class="summary-number" style="color:#00ff88;">{{ summary.low }}</div>
+            <div class="summary-label">LOW RISK</div>
+        </div>
+        <div class="summary-box">
+            <div class="summary-number" style="color:#ffffff44;">{{ summary.unknown }}</div>
+            <div class="summary-label">UNKNOWN</div>
+        </div>
+    </div>
+
+    <!-- Results Table -->
     <div class="results-section">
         <div class="results-header">
-            <div class="results-title">SCAN RESULTS</div>
-            <div class="results-count">{{ results|length }} THREATS FOUND</div>
+            <div class="results-title">PROCESSED ALERTS</div>
+            <div class="results-count">{{ results|length }} ALERTS PROCESSED</div>
             {% if filename %}
-            <div style="color:#ffffff33; font-size:11px; margin-left:auto;">{{ filename }}</div>
+            <div style="color:#ffffff33; font-size:11px; margin-left:auto;">
+                {{ filename }}
+            </div>
             {% endif %}
         </div>
 
         {% if results %}
-            {% for r in results %}
-            <div class="threat-card {{ r.severity.lower().replace(' ', '') if r.severity else '' }}">
-                <div class="threat-top">
-                    <span class="badge badge-{{ r.severity.replace(' ', '_') if r.severity else 'UNKNOWN' }}">
-                        {{ r.severity }}
-                    </span>
-                    {% if r.mitre_id %}
-                    <span class="mitre-badge">{{ r.mitre_id }} — {{ r.mitre_name }}</span>
-                    {% endif %}
-                </div>
-                <div class="threat-line">{{ r.line }}</div>
-                <div class="threat-meta">
-                    <div class="meta-item">ANALYSIS: <span class="meta-value">{{ r.analysis }}</span></div>
-                    {% if r.ip %}
-                    <div class="meta-item">IP: <span class="meta-value">{{ r.ip }}</span></div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endfor %}
-        {% else %}
-        <div class="no-threats">
-            ✅ No threats detected in this log file
-        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>ALERT</th>
+                    <th>SEVERITY</th>
+                    <th>ANALYSIS</th>
+                    <th>IP</th>
+                    <th>MITRE</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td style="color:#ffffff44;">{{ loop.index }}</td>
+                    <td style="max-width:250px;">{{ r.alert }}</td>
+                    <td>
+                        <span class="badge badge-{{ r.severity.replace(' ', '_') }}">
+                            {{ r.severity }}
+                        </span>
+                    </td>
+                    <td style="color:#ffffff66;">{{ r.analysis }}</td>
+                    <td style="color:#00e5ff;">{{ r.ip or "N/A" }}</td>
+                    <td>
+                        {% if r.mitre_id %}
+                        <span class="mitre-badge">{{ r.mitre_id }}</span>
+                        {% else %}
+                        <span style="color:#ffffff22;">N/A</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
         {% endif %}
     </div>
     {% endif %}
 
-    <!-- Sample Logs -->
-    <div class="sample-logs">
-        <h3>SAMPLE LOG LINES YOU CAN TEST</h3>
-        <div class="log-line">Failed password for invalid user admin from 192.168.1.105 port 22 ssh2</div>
-        <div class="log-line">Malware detected in file upload from 185.220.101.45</div>
-        <div class="log-line">Multiple failed login attempts from IP 45.33.32.156</div>
-        <div class="log-line">Ransomware activity detected on DESKTOP-042</div>
-        <div class="log-line">PowerShell encoded command executed by jsmith</div>
-        <div class="log-line">Large file transfer to external IP 8.8.8.8 detected</div>
-        <div class="log-line">User login from new location detected</div>
-        <div class="log-line">Accepted password for user john from 10.0.0.1 port 22 ssh2</div>
+    <!-- CSV Format Guide -->
+    <div class="csv-format">
+        <h3>CSV FORMAT GUIDE</h3>
+        <div class="csv-example">
+timestamp,alert,source<br>
+2026-04-27 10:00:01,Multiple failed login attempts from IP 185.220.101.45,firewall<br>
+2026-04-27 10:01:23,Ransomware activity detected on DESKTOP-042,endpoint<br>
+2026-04-27 10:02:45,Malware detected in file upload from IP 192.168.1.105,antivirus
+        </div>
     </div>
 
 </div>

@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL — Incident Detail</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #050a0f;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #000d1a;
+            border-bottom: 1px solid #00e5ff44;
+            padding: 16px 30px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            color: #00e5ff;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            color: #ffffff44;
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        nav {
+            margin-left: auto;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #00e5ff;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        nav a:hover { color: #ffffff; }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 24px;
+            color: #00e5ff;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .back-btn:hover { color: #fff; }
+
+        .section {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #00e5ff;
+            font-size: 11px;
+            letter-spacing: 3px;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #00e5ff22;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .label {
+            color: #ffffff44;
+            min-width: 160px;
+            letter-spacing: 1px;
+            font-size: 11px;
+        }
+
+        .value { color: #c8d8e8; }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .badge-CRITICAL { background: #ff444422; color: #ff4444; border: 1px solid #ff444444; }
+        .badge-HIGH { background: #ff884422; color: #ff8844; border: 1px solid #ff884444; }
+        .badge-MEDIUM { background: #ffaa0022; color: #ffaa00; border: 1px solid #ffaa0044; }
+        .badge-LOW { background: #00ff8822; color: #00ff88; border: 1px solid #00ff8844; }
+        .badge-UNKNOWN { background: #ffffff11; color: #aaaaaa; border: 1px solid #ffffff22; }
+
+        .mitre-box {
+            background: #ff440011;
+            border: 1px solid #ff440033;
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-top: 12px;
+        }
+
+        .mitre-id {
+            color: #ff8844;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .mitre-name {
+            color: #ffffff44;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .mitre-link {
+            color: #00e5ff;
+            font-size: 10px;
+            text-decoration: none;
+            margin-top: 6px;
+            display: inline-block;
+        }
+
+        .mitre-link:hover { color: #fff; }
+
+        .comment {
+            background: #00112a;
+            border: 1px solid #00e5ff11;
+            border-radius: 6px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+
+        .comment-header {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .comment-analyst {
+            color: #00e5ff;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .comment-time {
+            color: #ffffff33;
+            font-size: 10px;
+        }
+
+        .comment-text {
+            color: #c8d8e8;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .comment-form {
+            margin-top: 16px;
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            background: #050f1a;
+            border: 1px solid #00e5ff33;
+            border-radius: 4px;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 12px;
+            resize: vertical;
+            min-height: 80px;
+            outline: none;
+            margin-bottom: 10px;
+        }
+
+        .comment-form textarea:focus {
+            border-color: #00e5ff88;
+        }
+
+        .btn-comment {
+            background: linear-gradient(135deg, #006688, #00aad4);
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            padding: 10px 20px;
+        }
+
+        .btn-comment:hover {
+            background: linear-gradient(135deg, #0088aa, #00ccff);
+        }
+
+        .no-comments {
+            color: #ffffff22;
+            font-size: 12px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .btn-action {
+            background: transparent;
+            border: 1px solid #00e5ff33;
+            border-radius: 4px;
+            color: #00e5ff;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            letter-spacing: 1px;
+            padding: 8px 16px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-action:hover {
+            background: #00e5ff22;
+        }
+    body.light-mode {
+    background: #f5f7fa !important;
+    color: #1a2a3a !important;
+}
+body.light-mode header {
+    background: #003366 !important;
+}
+body.light-mode .section,
+body.light-mode .table-section,
+body.light-mode .chart-section,
+body.light-mode .stat-box,
+body.light-mode .upload-section,
+body.light-mode .results-section,
+body.light-mode .analyst-card,
+body.light-mode .scoring-info,
+body.light-mode .comment,
+body.light-mode .threat-card,
+body.light-mode .modal-box {
+    background: #ffffff !important;
+    border-color: #ccddee !important;
+    color: #1a2a3a !important;
+}
+body.light-mode table,
+body.light-mode th,
+body.light-mode td {
+    background: #ffffff !important;
+    color: #1a2a3a !important;
+    border-color: #ccddee !important;
+}
+body.light-mode th {
+    background: #003366 !important;
+    color: #ffffff !important;
+}
+body.light-mode nav a {
+    color: #ffffff !important;
+}
+</style>
+</head>
+<body>
+
+<header>
+    <div>
+        <div class="logo">⬡ SENTINEL</div>
+        <div class="subtitle">INCIDENT DETAIL</div>
+    </div>
+    <nav>
+        <a href="/">ANALYZE</a>
+        <a href="/history">HISTORY</a>
+        <a href="/escalated" style="color:#ffaa00;">ESCALATED</a>
+        <a href="/blocklist" style="color:#ff4444;">BLOCKLIST</a>
+        <a href="/analyst_stats" style="color:#00ff88;">ANALYSTS</a>
+        <a href="/logout" style="color:#ff4444;">LOGOUT</a>
+    </nav>
+</header>
+
+<div class="container">
+
+    <a href="/history" class="back-btn">← Back to History</a>
+
+    {% if incident %}
+
+    <!-- Incident Details -->
+    <div class="section">
+        <h2>INCIDENT #{{ incident.id }} — DETAILS</h2>
+
+        <div class="row">
+            <span class="label">TIMESTAMP</span>
+            <span class="value">{{ incident.timestamp }}</span>
+        </div>
+        <div class="row">
+            <span class="label">ALERT</span>
+            <span class="value">{{ incident.alert }}</span>
+        </div>
+        <div class="row">
+            <span class="label">SEVERITY</span>
+            <span class="value">
+                {% if incident.severity == 'CRITICAL' %}
+                    <span class="badge badge-CRITICAL">CRITICAL</span>
+                {% elif incident.severity == 'HIGH RISK' %}
+                    <span class="badge badge-HIGH">HIGH RISK</span>
+                {% elif incident.severity == 'MEDIUM RISK' %}
+                    <span class="badge badge-MEDIUM">MEDIUM RISK</span>
+                {% elif incident.severity == 'LOW RISK' %}
+                    <span class="badge badge-LOW">LOW RISK</span>
+                {% else %}
+                    <span class="badge badge-UNKNOWN">UNKNOWN</span>
+                {% endif %}
+            </span>
+        </div>
+        <div class="row">
+            <span class="label">ANALYSIS</span>
+            <span class="value">{{ incident.analysis }}</span>
+        </div>
+        <div class="row">
+            <span class="label">ANALYST</span>
+            <span class="value">{{ incident.analyst }}</span>
+        </div>
+        <div class="row">
+            <span class="label">SOURCE</span>
+            <span class="value">{{ incident.source or "manual" }}</span>
+        </div>
+        <div class="row">
+            <span class="label">FALSE POSITIVE</span>
+            <span class="value" style="color:{% if incident.false_positive %}#ffaa00{% else %}#00ff88{% endif %}">
+                {{ "YES — " + incident.fp_reason if incident.false_positive else "NO" }}
+            </span>
+        </div>
+        <div class="row">
+            <span class="label">ESCALATED</span>
+            <span class="value" style="color:{% if incident.escalated %}#ffaa00{% else %}#ffffff44{% endif %}">
+                {{ "YES — " + (incident.escalation_priority or "") if incident.escalated else "NO" }}
+            </span>
+        </div>
+
+        {% if incident.mitre_id %}
+        <div class="mitre-box">
+            <div class="mitre-id">{{ incident.mitre_id }}</div>
+            <div class="mitre-name">{{ incident.mitre_name }}</div>
+            <a href="https://attack.mitre.org/techniques/{{ incident.mitre_id.replace('.', '/') }}"
+               target="_blank" class="mitre-link">
+                View on MITRE ATT&CK →
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if incident.ip %}
+    <!-- IP Intelligence -->
+    <div class="section">
+        <h2>IP INTELLIGENCE</h2>
+        <div class="row">
+            <span class="label">IP ADDRESS</span>
+            <span class="value" style="color:#00e5ff;">{{ incident.ip }}</span>
+        </div>
+        <div class="row">
+            <span class="label">COUNTRY</span>
+            <span class="value">{{ incident.country or "N/A" }}</span>
+        </div>
+        <div class="row">
+            <span class="label">ISP</span>
+            <span class="value">{{ incident.isp or "N/A" }}</span>
+        </div>
+        <div class="row">
+            <span class="label">ABUSE SCORE</span>
+            <span class="value" style="color:{% if incident.score >= 80 %}#ff4444{% elif incident.score >= 40 %}#ffaa00{% else %}#00ff88{% endif %}">
+                {{ incident.score }}%
+            </span>
+        </div>
+        <div class="row">
+            <span class="label">VERDICT</span>
+            <span class="value">{{ incident.verdict or "N/A" }}</span>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Quick Actions -->
+    <div class="section">
+        <h2>QUICK ACTIONS</h2>
+        <div class="actions">
+            <a href="/export_pdf/{{ incident.id }}" class="btn-action">📄 EXPORT PDF</a>
+            {% if incident.ip %}
+            <a href="/block_ip/{{ incident.id }}" class="btn-action" style="color:#ff4444; border-color:#ff444433;">🚫 BLOCK IP</a>
+            {% endif %}
+            <a href="/history" class="btn-action">← BACK TO HISTORY</a>
+        </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="section">
+        <h2>INVESTIGATION NOTES ({{ comments|length }})</h2>
+
+        {% if comments %}
+            {% for c in comments %}
+            <div class="comment">
+                <div class="comment-header">
+                    <span class="comment-analyst">{{ c.analyst }}</span>
+                    <span class="comment-time">{{ c.timestamp }}</span>
+                </div>
+                <div class="comment-text">{{ c.comment }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+        <div class="no-comments">
+            No investigation notes yet — add the first note below
+        </div>
+        {% endif %}
+
+        <div class="comment-form">
+            <form method="POST" action="/add_comment/{{ incident.id }}">
+                <textarea
+                    name="comment"
+                    placeholder="Add investigation notes... (what you found, actions taken, next steps)">
+                </textarea>
+                <button type="submit" class="btn-comment">ADD NOTE →</button>
+            </form>
+        </div>
+    </div>
+
+    {% endif %}
+
+</div>
+
+<script>
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+    }
+</script>
+</body>
+</html>

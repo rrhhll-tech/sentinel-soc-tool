@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINEL — Analyst Performance</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #050a0f;
+            color: #c8d8e8;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+        }
+
+        header {
+            background: #000d1a;
+            border-bottom: 1px solid #00e5ff44;
+            padding: 16px 30px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            color: #00e5ff;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 4px;
+        }
+
+        .subtitle {
+            color: #ffffff44;
+            font-size: 11px;
+            letter-spacing: 2px;
+        }
+
+        nav {
+            margin-left: auto;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        nav a {
+            color: #00e5ff;
+            text-decoration: none;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        nav a:hover { color: #ffffff; }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .back-btn {
+            display: inline-block;
+            margin-bottom: 24px;
+            color: #00e5ff;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .back-btn:hover { color: #fff; }
+
+        .page-title {
+            color: #00e5ff;
+            font-size: 12px;
+            letter-spacing: 3px;
+            margin-bottom: 24px;
+            padding: 12px 16px;
+            background: #00e5ff11;
+            border: 1px solid #00e5ff33;
+            border-radius: 6px;
+            display: inline-block;
+        }
+
+        .leaderboard {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 30px;
+        }
+
+        .analyst-card {
+            background: #020e1a;
+            border: 1px solid #00e5ff22;
+            border-radius: 8px;
+            padding: 24px;
+            display: grid;
+            grid-template-columns: 60px 1fr repeat(6, 80px) 120px;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+        }
+
+        .analyst-card:hover {
+            border-color: #00e5ff44;
+            background: #020e1a;
+        }
+
+        .analyst-card.rank-1 {
+            border-color: #ffaa0066;
+            background: #1a1200;
+        }
+
+        .analyst-card.rank-2 {
+            border-color: #aaaaaa44;
+            background: #0a0a0a;
+        }
+
+        .analyst-card.rank-3 {
+            border-color: #ff884444;
+            background: #1a0800;
+        }
+
+        .rank {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .rank-1 .rank { color: #ffaa00; }
+        .rank-2 .rank { color: #aaaaaa; }
+        .rank-3 .rank { color: #ff8844; }
+
+        .analyst-info {}
+
+        .analyst-name {
+            color: #c8d8e8;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .analyst-id {
+            color: #ffffff33;
+            font-size: 10px;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .stat-col {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #00e5ff;
+        }
+
+        .stat-label {
+            font-size: 9px;
+            color: #ffffff33;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .score-col {
+            text-align: center;
+        }
+
+        .score-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .score-label {
+            font-size: 9px;
+            color: #ffffff33;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        .score-bar-container {
+            margin-top: 6px;
+            background: #ffffff11;
+            border-radius: 4px;
+            height: 4px;
+            overflow: hidden;
+        }
+
+        .score-bar {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #00e5ff, #00ff88);
+        }
+
+        .no-data {
+            text-align: center;
+            color: #ffffff22;
+            padding: 60px;
+            font-size: 14px;
+        }
+
+        .scoring-info {
+            background: #020e1a;
+            border: 1px solid #00e5ff11;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-top: 24px;
+        }
+
+        .scoring-info h3 {
+            color: #ffffff33;
+            font-size: 10px;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+
+        .scoring-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .scoring-item {
+            font-size: 11px;
+            color: #ffffff22;
+            padding: 8px 12px;
+            background: #ffffff05;
+            border-radius: 4px;
+        }
+
+        .scoring-points {
+            color: #00ff88;
+            font-weight: bold;
+        }
+    body.light-mode {
+    background: #f5f7fa !important;
+    color: #1a2a3a !important;
+}
+body.light-mode header {
+    background: #003366 !important;
+}
+body.light-mode .section,
+body.light-mode .table-section,
+body.light-mode .chart-section,
+body.light-mode .stat-box,
+body.light-mode .upload-section,
+body.light-mode .results-section,
+body.light-mode .analyst-card,
+body.light-mode .scoring-info,
+body.light-mode .comment,
+body.light-mode .threat-card,
+body.light-mode .modal-box {
+    background: #ffffff !important;
+    border-color: #ccddee !important;
+    color: #1a2a3a !important;
+}
+body.light-mode table,
+body.light-mode th,
+body.light-mode td {
+    background: #ffffff !important;
+    color: #1a2a3a !important;
+    border-color: #ccddee !important;
+}
+body.light-mode th {
+    background: #003366 !important;
+    color: #ffffff !important;
+}
+body.light-mode nav a {
+    color: #ffffff !important;
+}
+</style>
+</head>
+<body>
+
+<header>
+    <div>
+        <div class="logo">⬡ SENTINEL</div>
+        <div class="subtitle">ANALYST PERFORMANCE</div>
+    </div>
+    <nav>
+        <a href="/">ANALYZE</a>
+        <a href="/upload_log">LOG UPLOAD</a>
+        <a href="/history">HISTORY</a>
+        <a href="/escalated" style="color:#ffaa00;">ESCALATED</a>
+        <a href="/blocklist" style="color:#ff4444;">BLOCKLIST</a>
+        <a href="/analyst_stats" style="color:#00ff88;">ANALYSTS</a>
+        <a href="/logout" style="color:#ff4444;">LOGOUT</a>
+    </nav>
+</header>
+
+<div class="container">
+
+    <a href="/" class="back-btn">← Back to Dashboard</a>
+
+    <div class="page-title">🏆 ANALYST PERFORMANCE LEADERBOARD</div>
+
+    {% if stats %}
+    <div class="leaderboard">
+        {% for s in stats %}
+        <div class="analyst-card rank-{{ loop.index if loop.index <= 3 else '' }}">
+
+            <div class="rank">
+                {% if loop.index == 1 %}🥇
+                {% elif loop.index == 2 %}🥈
+                {% elif loop.index == 3 %}🥉
+                {% else %}#{{ loop.index }}
+                {% endif %}
+            </div>
+
+            <div class="analyst-info">
+                <div class="analyst-name">{{ s.fullname }}</div>
+                <div class="analyst-id">{{ s.username }}</div>
+            </div>
+
+            <div class="stat-col">
+                <div class="stat-value">{{ s.total }}</div>
+                <div class="stat-label">TOTAL</div>
+            </div>
+
+            <div class="stat-col">
+                <div class="stat-value" style="color:#ff4444;">{{ s.critical }}</div>
+                <div class="stat-label">CRITICAL</div>
+            </div>
+
+            <div class="stat-col">
+                <div class="stat-value" style="color:#ff8844;">{{ s.high }}</div>
+                <div class="stat-label">HIGH</div>
+            </div>
+
+            <div class="stat-col">
+                <div class="stat-value" style="color:#ffaa00;">{{ s.escalated }}</div>
+                <div class="stat-label">ESCALATED</div>
+            </div>
+
+            <div class="stat-col">
+                <div class="stat-value" style="color:#ffffff44;">{{ s.fp_caught }}</div>
+                <div class="stat-label">FP CAUGHT</div>
+            </div>
+
+            <div class="stat-col">
+                <div class="stat-value" style="color:#ff4444;">{{ s.blocked }}</div>
+                <div class="stat-label">BLOCKED</div>
+            </div>
+
+            <div class="score-col">
+                <div class="score-value">{{ s.score }}</div>
+                <div class="score-label">THREAT SCORE</div>
+                <div class="score-bar-container">
+                    <div class="score-bar" style="width:{{ [s.score // 10, 100]|min }}%"></div>
+                </div>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="no-data">
+        No analysts registered yet
+    </div>
+    {% endif %}
+
+    <div class="scoring-info">
+        <h3>SCORING SYSTEM</h3>
+        <div class="scoring-grid">
+            <div class="scoring-item">Alert Handled: <span class="scoring-points">+10 pts</span></div>
+            <div class="scoring-item">Critical Alert: <span class="scoring-points">+50 pts</span></div>
+            <div class="scoring-item">High Risk Alert: <span class="scoring-points">+30 pts</span></div>
+            <div class="scoring-item">Escalated to L2: <span class="scoring-points">+20 pts</span></div>
+            <div class="scoring-item">False Positive Caught: <span class="scoring-points">+15 pts</span></div>
+            <div class="scoring-item">IP Blocked: <span class="scoring-points">+25 pts</span></div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        document.body.classList.add('light-mode');
+    }
+</script>
+</body>
+</html>
