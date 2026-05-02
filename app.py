@@ -10,6 +10,8 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from io import BytesIO
+from dotenv import load_dotenv
+load_dotenv()
 import requests
 import re
 import os
@@ -29,11 +31,11 @@ db = SQLAlchemy(app)
 
 os.makedirs("uploads", exist_ok=True)
 
-API_KEY = "c334492f110ff5c185f283f3742cca2c47c59c0c1226047dd6f82066dfd76e12b8998aa6b9c12a33"
-GROQ_KEY = "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"
-EMAIL_ADDRESS = "singhrahhhhhhh@gmail.com"
-EMAIL_PASSWORD = "lefl awrj uexf zqam"
-EMAIL_ALERTS_TO = "singhrahhhhhhh@gmail.com"
+API_KEY = os.getenv("ABUSEIPDB_KEY")
+GROQ_KEY = os.getenv("GROQ_KEY")
+EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
+EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
+EMAIL_ALERTS_TO = os.getenv("EMAIL_ALERTS_TO")
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
