@@ -39,6 +39,7 @@ GROQ_KEY = os.getenv("GROQ_KEY")
 EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD")
 EMAIL_ALERTS_TO = os.getenv("EMAIL_ALERTS_TO")
+EMAIL_ENABLED = True
 
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
