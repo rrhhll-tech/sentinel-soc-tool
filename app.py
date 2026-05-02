@@ -10,8 +10,11 @@ from reportlab.lib.enums import TA_CENTER
 from reportlab.lib import colors
 from reportlab.lib.units import inch
 from io import BytesIO
-from dotenv import load_dotenv
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except:
+    pass
 import requests
 import re
 import os
