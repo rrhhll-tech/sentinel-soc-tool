@@ -5,3 +5,4 @@ requests
 reportlab
 python-dotenv
 groq
+gunicorn
