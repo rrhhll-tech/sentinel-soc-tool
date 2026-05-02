@@ -1,0 +1,7 @@
+flask
+flask-sqlalchemy
+werkzeug
+requests
+reportlab
+python-dotenv
+groq
